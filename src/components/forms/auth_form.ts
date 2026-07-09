@@ -10,7 +10,7 @@ export class AuthForm extends Gtk.Box {
     isValidPass = false
     isRegister = false
 
-    constructor(app: any,title: string, isRegister: boolean, submit_event: () => void){
+    constructor(app: any,title: string, isRegister: boolean, submit_event: (data: any) => void){
         super({
              orientation: Gtk.Orientation.VERTICAL,
             spacing: 12,
@@ -98,7 +98,17 @@ export class AuthForm extends Gtk.Box {
                 return
             }
             console.log(`email: ${input_email.text} , password: ${input_password.text}`)
-            //submit_event()
+
+            
+            submit_event(!isRegister ? {
+                email: input_email.text, 
+                password: input_password.text
+                } : 
+                {
+                name: input_name.text,
+                email: input_email.text, 
+                password: input_password.text
+                })
         })
 
         this.append(btn)

@@ -17,8 +17,8 @@ export class AuthComponent extends Gtk.Stack{
 
 
         // test login box
-        const login_box = new AuthForm(app, "Login", false, () => {
-            this.submit_login()
+        const login_box = new AuthForm(app, "Login", false, (data: any) => {
+            this.submit_login(data)
         })
 
         //login_box.append(new Gtk.Label({ label: 'test-login!' }));
@@ -46,8 +46,8 @@ export class AuthComponent extends Gtk.Stack{
 
 
         // test register box
-         const register_box = new AuthForm(app, "Register", true,() => {
-            this.submit_register()
+         const register_box = new AuthForm(app, "Register", true,(data: any) => {
+            this.submit_register(data)
         })
         this.addNamed(register_box, "register_layout")
         this.app.root_navigation_stack.setVisibleChildName("main_layout")
@@ -59,15 +59,16 @@ export class AuthComponent extends Gtk.Stack{
     }
 
 
-    submit_login() {
-          console.log("login-btn...1")
+    submit_login(data: any) {
+          console.log("submit-login:", data)
           if(this.app) {
             this.app.outer_split_view.setVisible(true)
-            this.app.root_navigation_stack.setVisibleChildName("main_layout")
+            //this.app.root_navigation_stack.setVisibleChildName("main_layout")
           }
     }
 
-    submit_register(){
+    submit_register(data: any){
+        console.log("submit-register:", data)
          this.app.outer_split_view.setVisible(false)
          this.setVisibleChildName("login_layout")
     }
