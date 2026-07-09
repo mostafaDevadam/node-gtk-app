@@ -30,6 +30,8 @@ import { MainMenu } from './components/main-menu.js'
 import { AuthComponent } from './components/auth.js';
 import { LeftSidebar } from './components/left_sidebar.js';
 import { RightSidebar } from './components/right_sidebar.js';
+import { USER } from './types.js';
+import { UserRole } from './enums.js';
 
 process.argv = [process.argv[0]];
 
@@ -141,6 +143,10 @@ class App extends Adw.Application {
     right_sidebar: any
     center_stack: any
 
+    active_user: USER = {}
+    active_username = ""
+    active_user_role: UserRole = UserRole.employee
+
     constructor() {
       super({applicationId: APP_ID, flags: Gio.ApplicationFlags.FLAGS_NONE })
       //this.toastOverlay = new Adw.ToastOverlay()
@@ -211,7 +217,7 @@ class App extends Adw.Application {
      
 
       // left_sidebar
-      this.left_sidebar = new LeftSidebar()
+      this.left_sidebar = new LeftSidebar(this)
       // right_sidebar
       this.right_sidebar = new RightSidebar();
 

@@ -1,4 +1,5 @@
 import {Adw, GLib, Gio, Gtk} from '../../index.js'
+import { AUTH } from '../../types.js'
 
 export class AuthForm extends Gtk.Box {
 
@@ -10,7 +11,7 @@ export class AuthForm extends Gtk.Box {
     isValidPass = false
     isRegister = false
 
-    constructor(app: any,title: string, isRegister: boolean, submit_event: (data: any) => void){
+    constructor(app: any,title: string, isRegister: boolean, submit_event: (data: AUTH) => void){
         super({
              orientation: Gtk.Orientation.VERTICAL,
             spacing: 12,

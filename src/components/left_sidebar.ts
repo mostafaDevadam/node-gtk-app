@@ -1,10 +1,15 @@
 import {Adw, GLib, Gio, Gtk} from '../index.js'
+import { AuthInstance, AuthService } from '../services/auth.service.js';
 
 
 
 export class LeftSidebar extends Gtk.Box {
 
-    constructor(){
+    authService: AuthService
+    app: any
+    private label: any
+
+    constructor(app: any){
         super({
              orientation: Gtk.Orientation.VERTICAL,
             spacing: 6,
@@ -15,10 +20,27 @@ export class LeftSidebar extends Gtk.Box {
         
 
         })
+        this.app = app
+
+        this.authService = new AuthService()
         
         this.setSizeRequest(200, -1)
-        this.append(new Gtk.Label({ label: 'left_sidebar!' }));
+
+
+        console.log("left-sidebar:", app.active_username, AuthInstance.loggedIn_user)
+
+        this.label = new Gtk.Label({ label: "welcome"})
+        this.append(this.label);
+
+        
 
 
     }
+
+    public updateLeftLabel(username: string) {
+        this.label.setText(`left_sidebar - ${AuthInstance.loggedIn_user.name}`)
+        //this.label.text = `left_sidebar - ${AuthInstance.loggedIn_user.name}`
+    }
+
+
 }
