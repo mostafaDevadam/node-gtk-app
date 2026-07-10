@@ -294,11 +294,11 @@ class App extends Adw.Application {
 
       // 4.items
       const home_items = [
-        {"key": "item_bookings", icon: "folder-download-symbolic"},
-        {"key": "item_trips", icon: "drive-harddisk-symbolic"},
-        {"key": "item_buses", icon: "drive-harddisk-symbolic"},
-        {"key": "item_history", icon: "drive-harddisk-symbolic"},
-        {"key": "item_audit_logs", icon: "drive-harddisk-symbolic"},
+        { "key": "item_bookings", "icon": "x-office-calendar-symbolic" },
+        { "key": "item_trips", "icon": "preferences-system-network-symbolic" },
+        { "key": "item_buses", "icon": "avatar-default-symbolic" }, // alternative standard: "view-grid-symbolic"
+        { "key": "item_history", "icon": "document-open-recent-symbolic" },
+        { "key": "item_audit_logs", "icon": "view-list-ordered-symbolic" }
 
       ]
 
@@ -320,10 +320,10 @@ class App extends Adw.Application {
 
       // 4.items
       const settings_items = [
-        {"key": "item_account", icon: "folder-download-symbolic"},
-        {"key": "item_notifications", icon: "drive-harddisk-symbolic"},
-        {"key": "item_display", icon: "drive-harddisk-symbolic"},
-        {"key": "item_keyboard", icon: "drive-harddisk-symbolic"},
+        {"key": "item_account", icon: "avatar-default-symbolic"},
+        {"key": "item_notifications", icon: "preferences-system-notifications-symbolic"},
+        {"key": "item_display", icon: "video-display-symbolic"},
+        {"key": "item_keyboard", icon: "input-keyboard-symbolic"},
 
       ]
 
@@ -350,8 +350,8 @@ class App extends Adw.Application {
 
       // 4.items
       const profile_items = [
-        {"key": "item_info", icon: "folder-download-symbolic"},
-        {"key": "item_address", icon: "drive-harddisk-symbolic"},
+        {"key": "item_info", icon: "user-info-symbolic"},
+        {"key": "item_address", icon: "mark-location-symbolic"},
       ]
 
       tab_box_3.build(list_box_3, profile_items, this.nav_views)
@@ -655,6 +655,20 @@ class App extends Adw.Application {
 
           console.log("check_auto_login user:", user)
 
+          const settings = await StorageService.readFromJsonAsObject("storage", "settings") as {is_dark_mode: boolean, saved_email: string}
+
+    
+           if(!settings || !settings.saved_email || !settings.is_dark_mode) { 
+            console.log("No settings dark-mode for user")
+           }
+
+
+          const styleManager = Adw.StyleManager.getDefault();
+          styleManager.colorScheme = settings.is_dark_mode ? Adw.ColorScheme.PREFER_DARK : Adw.ColorScheme.PREFER_LIGHT;
+
+
+
+
           this.active_user = user
           this.active_user_role = user.role
           this.active_username = user.name
@@ -707,9 +721,27 @@ class App extends Adw.Application {
          copy_item_btn.setChild(box)
             
          //copy_item_btn.item = item
-         copy_item_btn.connect("clicked", () => {
+         copy_item_btn.connect("clicked", (button) => {
 
-            const display = Gdk.Display.getDefault()
+           this.copy(item, copy_icon, copy_lbl, copy_item_btn, button)
+
+         })
+
+
+         return copy_item_btn
+
+    }
+
+    reset_copy_button(button: any, icon:any, label: any) {
+        icon.visible = true;
+        label.visible = false;
+        button.setSensitive(true);
+        button.removeCssClass("circular"); // Or leave it if you prefer it round permanently!
+    }
+
+    copy(item: any,copy_icon: any,copy_lbl: any,copy_item_btn: any,   button: any){
+
+       const display = Gdk.Display.getDefault()
             const clipboard = display ? display.getClipboard() : null;
             
 
@@ -767,96 +799,8 @@ class App extends Adw.Application {
                 
             }
 
-
-         })
-
-
-         return copy_item_btn
-
     }
 
-    reset_copy_button(button: any, icon:any, label: any) {
-        icon.visible = true;
-        label.visible = false;
-        button.setSensitive(true);
-        button.removeCssClass("circular"); // Or leave it if you prefer it round permanently!
-    }
-
-    copy(button: any){
-
-    }
-
-    /*
-    def build_copy_btn(self, item):
-            # box
-            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-
-            # icon
-            copy_icon = Gtk.Image.new_from_icon_name("edit-copy-symbolic")
-            # label
-            copy_label = Gtk.Label(label="Copied")
-            copy_label.set_visible(False)
-            # button
-            copy_item_btn = Gtk.Button()
-            copy_item_btn.add_css_class("flat")
-            copy_item_btn.add_css_class("circular")
-            #copy_item_btn.set_child(copy_icon)
-            #
-            copy_item_btn.set_child(box)
-            box.append(copy_icon)
-            box.append(copy_label)
-
-            #
-            copy_item_btn.icon_widget = copy_icon
-            copy_item_btn.label_widget = copy_label
-            #
-            copy_item_btn.item = item
-            copy_item_btn.connect("clicked", self.copy)
-            #
-            
-        
-            return copy_item_btn
-
-    def copy(self, button):
-            import time
-
-            print(f"copy_btn..."),   
-            display = Gdk.Display.get_default()
-            clipboard = display.get_clipboard()
-            #
-            item = getattr(button, "item", "Unknown")
-            print(f"clicked copy_icon name: {item}")
-            #
-            text_to_copy = item #self.active_user.get("email", "N/A")
-            if text_to_copy:
-                #clipboard.set_text(text_to_copy)
-                gvalue = GObject.Value(GObject.TYPE_STRING, text_to_copy)
-                provider =  Gdk.ContentProvider.new_for_value(gvalue)
-                clipboard.set_content(provider)
-                print(f"Copied text: {text_to_copy}")
-                #
-                #button.set_label("Copied")
-                #GLib.timeout_add_seconds(5, lambda:  button.set_child(Gtk.Image.new_from_icon_name("edit-copy-symbolic")))
-                button.icon_widget.set_visible(False)
-                button.label_widget.set_visible(True)
-                button.add_css_class("circular")
-                button.set_sensitive(True)
-                #
-                GLib.timeout_add_seconds(5, lambda:  self.reset_copy_button(button))
-                #
-
-
-
-            #
-    def reset_copy_button(self, button):
-        button.label_widget.set_visible(False)
-        button.icon_widget.set_visible(True)
-        button.add_css_class("circular")
-        button.set_sensitive(True)
-    
-    */
-
-  
 
 }
 

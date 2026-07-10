@@ -2,6 +2,7 @@
 import {Adw, GLib, Gio, Gtk} from '../index.js'
 import path, { join } from 'path';
 import fs from 'fs'
+import { StorageService } from '../services/storage.service.js';
 
 export class SettingsComponent {
 
@@ -113,6 +114,18 @@ export class SettingsComponent {
 
           const styleManager = Adw.StyleManager.getDefault();
           styleManager.colorScheme = isDarkMode ? Adw.ColorScheme.PREFER_DARK : Adw.ColorScheme.PREFER_LIGHT;
+        
+          // save dark-mode in settings.json
+          if(this.app){
+            const user = this.app.active_user
+            const settings_data = {
+                "is_dark_mode": isDarkMode,
+                "saved_email": user.email,
+            }
+            StorageService.saveData("storage", "settings", settings_data)
+          }
+          
+        
         })
         //this.app.register_widget(dark_mode_row, "title", "dark_mode")
         group.add(dark_mode_row)

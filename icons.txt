@@ -1,0 +1,10 @@
+calendar-item-symbolic
+route-symbolic
+avatar-default-symbolic or view-grid-symbolic"
+document-open-recent-symbolic
+view-list-ordered-symbolic
+x-office-calendar-symbolic
+preferences-system-network-symbolic
+user-info-symbolic
+mark-location-symbolic
+edit-copy-symbolic
