@@ -10,6 +10,8 @@
     "outDir": "dist",
     "rootDir": "src",
     "types": ["node"],
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "paths": {
       "node-gtk": ["./node_modules/.node-gtk-types/node-gtk"]
     }

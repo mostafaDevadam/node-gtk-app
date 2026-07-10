@@ -147,6 +147,32 @@ app.on('activate', () => {
 
 
 
+import i18next from 'i18next';
+// Using standard node imports for your local translation JSON files
+import enTranslation from '../locales/en.json' with { type: 'json' };
+import esTranslation from '../locales/es.json' with { type: 'json' };
+import deTranslation from '../locales/de.json' with { type: 'json' };
+import arTranslation from '../locales/ar.json' with { type: 'json' };
+
+// Simple helper to check the Linux system language environment variable (e.g., "en_US.UTF-8" -> "en")
+const systemLang = (process.env.LANG || 'en').split('_')[0].split('.')[0];
+
+async function initI18n() {
+    await i18next.init({
+        lng: systemLang,       // Use the detected OS language
+        fallbackLng: 'en',     // Default to English if system lang isn't supported yet
+        resources: {
+            en: { translation: enTranslation },
+            es: { translation: esTranslation }
+        }
+    });
+
+    // Make the standard global _() translation macro shortcut accessible anywhere in your code
+    (globalThis as any)._ = (key: string) => i18next.t(key);
+}
+
+// Call this before building your GTK Windows!
+//await initI18n();
 
 
 
@@ -176,7 +202,7 @@ class App extends Adw.Application {
     active_username = ""
     active_user_role: UserRole = UserRole.employee
 
-    nav_views = {}
+    nav_views: Record<string, any> = {}
 
     template_view: TemplateViewComponent
     profile_comp: ProfileComponent
@@ -186,6 +212,12 @@ class App extends Adw.Application {
     history_comp: HistoryComponent
     audit_logs_comp: AuditLogsComponent 
     settings_comp: SettingsComponent
+
+    private registered_widgets: Array<{ widget: any, prop: string, key: string }> = [];
+
+    _: any
+
+    currentLang = "en"
 
     constructor() {
       super({applicationId: APP_ID, flags: Gio.ApplicationFlags.FLAGS_NONE })
@@ -200,12 +232,158 @@ class App extends Adw.Application {
       this.history_comp = new HistoryComponent(this)
       this.audit_logs_comp = new AuditLogsComponent(this)
       this.settings_comp = new SettingsComponent(this)
+
+
+
+
+      // 1. Run initialization tasks first (like loading translations)
+      this.on('startup', async () => {
+            try {
+                this.hold(); // Tells GTK to wait while we run our async Node task
+                await this.initI18n();
+            } catch (err) {
+                console.error("Failed to load translations:", err);
+            } finally {
+                this.release(); // Tells GTK our async task is done, safe to proceed
+            }
+        });
       
       this.on('activate', () => this.do_activate());
 
       
 
     }
+
+
+    private async initI18n(): Promise<void> {
+        const systemLang = (process.env.LANG || 'de').split('_')[0].split('.')[0];
+
+       
+
+        await i18next.init({
+            lng: this.currentLang,
+            fallbackLng: 'en',
+            resources: {
+                en: { translation: enTranslation },
+                //es: { translation: esTranslation }
+                de: {translation: deTranslation },
+                ar: {translation: arTranslation }
+            }
+        });
+
+        // Establish our global micro-shorthand helper macro
+        (globalThis as any)._ = (key: string) => i18next.t(key);
+        this._ = (key: string) => i18next.t(key)
+    }
+
+
+    refresh_row_dictionaries(){
+         console.log("refresh_row_dictionaries lang:", this.currentLang)
+        const target_dictionaries = ['nav_views', 'nav_settings_rows', 'nav_profile_rows'] as const;
+    
+    target_dictionaries.forEach(dictKey => {
+        // Safely access the target object dictionary profile (e.g., this.nav_views)
+        const currentDict = (this as any)[dictKey];
+        if (!currentDict) return;
+
+        console.log("target_dictionaries currentDict: ", currentDict)
+
+        for (let row_attr in currentDict) {
+            const currentView = currentDict[row_attr];
+            if (!currentView) continue;
+
+            // Compute your translation string path key
+            // This transforms keys like "profile_settings" -> "sidebar.profile_settings" 
+            // or handles standard items directly depending on how your i18n JSON is structured
+            const translationKey = row_attr.startsWith("item_") ? `${row_attr.replace("item_", "")}` : `${row_attr}`;
+            const translatedText = this._(translationKey);
+
+            // 1. Update the internal tracker text property just in case
+            if ("label" in currentView) {
+                currentView["label"] = translatedText;
+            }
+
+            // 2. FORCE GTK TO RENDER THE CHANGE ON-SCREEN:
+            // Check if the view itself is a standard widget, or has a setter method
+            if (typeof currentView.setLabel === 'function') {
+                currentView.setLabel(translatedText);
+            } 
+            else if (typeof currentView.setTitle === 'function') {
+                currentView.setTitle(translatedText);
+            }
+            // If your custom view holds an internal child label element (e.g., currentView.titleLabel)
+            else if (currentView.titleLabel && typeof currentView.titleLabel.setLabel === 'function') {
+                currentView.titleLabel.setLabel(translatedText);
+            }
+
+            console.log("currentView:", currentView)
+
+
+             this.update_widget_text(currentView, "title", currentView.key);
+        }
+    });
+            /*if hasattr(self, row_attr):
+                row_dict = getattr(self, row_attr)
+                if row_dict:
+                    for key, row_widget in row_dict.items():
+                        if hasattr(row_widget, "set_title"):
+                            row_widget.set_title(self.i18n._(key))*/
+     }
+
+     public refresh_all_translations() {
+          this.registered_widgets.forEach(({ widget, prop, key }) => {
+              this.update_widget_text(widget, prop, key);
+          });
+      }
+
+     register_widget(widget: any, prop: any, key: any){
+       /*this.registered_widgets.forEach(({ widget, prop, key }) => {
+        this.update_widget_text(widget, prop, key);
+       }); */
+       this.registered_widgets.push({widget, prop, key})
+
+       this.update_widget_text(widget, prop, key);
+    }
+
+    update_widget_text(widget: any, prop: any, key: any){
+        if (!widget) return;
+    
+        const translated_text = this._(key);
+
+        switch(prop) {
+            case "label":
+                // Used by Gtk.Label, Gtk.Button, Gtk.CheckButton
+                if (typeof widget.setLabel === 'function') widget.setLabel(translated_text);
+                widget.setLabel(translated_text)
+                break;
+
+            case "title":
+                // Used by Gtk.Window, Adw.ApplicationWindow, Adw.ActionRow, Adw.HeaderBar
+                if (typeof widget.setTitle === 'function') widget.setTitle(translated_text);
+                break;
+
+            case "subtitle":
+                // Used by Adw.ActionRow, Adw.ExpanderRow
+                if (typeof widget.setSubtitle === 'function') widget.setSubtitle(translated_text);
+                break;
+
+            case "placeholder":
+                // Fix: Gtk.Entry and Gtk.PasswordEntry use 'setPlaceholderText'
+                if (typeof widget.setPlaceholderText === 'function') widget.setPlaceholderText(translated_text);
+                break;
+
+            case "tooltip":
+                // Used by absolutely any Gtk.Widget on hover
+                if (typeof widget.setTooltipText === 'function') widget.setTooltipText(translated_text);
+                break;
+                
+            default:
+                console.warn(`[i18n] Property handler for "${prop}" is not implemented.`);
+        }
+          
+    }
+
+
 
     private do_activate(): void{
       //
@@ -216,6 +394,9 @@ class App extends Adw.Application {
 
      // 1. Create your header bar and content box
     const headerBar = new Adw.HeaderBar();
+
+    //
+    this.refresh_row_dictionaries()
     
 
     //   
@@ -264,6 +445,57 @@ class App extends Adw.Application {
       //headerBar.packEnd(this.mainMenu())
       const menu = new MainMenu(this, this, this.window)
       menu.set_header(headerBar)
+
+      // switch-lang
+      const lang_btn = new Gtk.Button({label: "Language: EN"})
+      let count = 1
+      lang_btn.connect("clicked", async () => {
+        let btnLabel = "Language: EN";
+        let next_lang = "en"
+        switch(count){
+          case 1:
+            next_lang = "en"
+            btnLabel = "EN"
+          break
+           case 2:
+            next_lang = "de"
+             btnLabel = "DE"
+          break
+           case 3:
+            next_lang = "ar"
+             btnLabel = "AR"
+          break
+        }
+
+        try {
+          await i18next.changeLanguage(next_lang)
+          this.currentLang = next_lang
+          lang_btn.setLabel(btnLabel)
+
+          this.refresh_all_translations();
+
+          // 2. FORCE the active page layout view dictionary to re-sync
+          if (typeof this.refresh_row_dictionaries === 'function') {
+              this.refresh_row_dictionaries();
+          }
+
+           console.log("Language successfully switched to:", next_lang);
+        } catch (error) {
+          console.error("Failed to dynamically switch language:", error);
+        }
+
+        count++
+
+        if(count > 3){
+          count = 1
+        }
+
+        console.log("lang btn:", count)
+           
+
+      })
+
+      headerBar.packStart(lang_btn)
      
 
       // left_sidebar
@@ -294,15 +526,15 @@ class App extends Adw.Application {
 
       // 4.items
       const home_items = [
-        { "key": "item_bookings", "icon": "x-office-calendar-symbolic" },
-        { "key": "item_trips", "icon": "preferences-system-network-symbolic" },
-        { "key": "item_buses", "icon": "avatar-default-symbolic" }, // alternative standard: "view-grid-symbolic"
-        { "key": "item_history", "icon": "document-open-recent-symbolic" },
-        { "key": "item_audit_logs", "icon": "view-list-ordered-symbolic" }
+        { "key": "bookings", "icon": "x-office-calendar-symbolic", "label": this._("bookings") },
+        { "key": "trips", "icon": "preferences-system-network-symbolic", "label": this._("trips") },
+        { "key": "buses", "icon": "avatar-default-symbolic", "label": this._("buses") }, // alternative standard: "view-grid-symbolic"
+        { "key": "history", "icon": "document-open-recent-symbolic", "label": this._("history") },
+        { "key": "audit_logs", "icon": "view-list-ordered-symbolic","label": this._("audit_logs") }
 
       ]
 
-       tab_box_1.build(list_box_1, home_items, this.nav_views)
+       this.nav_views = tab_box_1.build(list_box_1, home_items, this.nav_views)
 
      
 
@@ -320,14 +552,14 @@ class App extends Adw.Application {
 
       // 4.items
       const settings_items = [
-        {"key": "item_account", icon: "avatar-default-symbolic"},
-        {"key": "item_notifications", icon: "preferences-system-notifications-symbolic"},
-        {"key": "item_display", icon: "video-display-symbolic"},
-        {"key": "item_keyboard", icon: "input-keyboard-symbolic"},
+        {"key": "account", icon: "avatar-default-symbolic", label: this._("account")},
+        {"key": "notifications", icon: "preferences-system-notifications-symbolic", label: this._("notifications")},
+        {"key": "display", icon: "video-display-symbolic", label: this._("display")},
+        {"key": "keyboard", icon: "input-keyboard-symbolic", label: this._("keyboard")},
 
       ]
 
-      tab_box_2.build(list_box_2, settings_items, this.nav_views)
+       this.nav_views  = tab_box_2.build(list_box_2, settings_items, this.nav_views)
 
     
 
@@ -350,11 +582,11 @@ class App extends Adw.Application {
 
       // 4.items
       const profile_items = [
-        {"key": "item_info", icon: "user-info-symbolic"},
-        {"key": "item_address", icon: "mark-location-symbolic"},
+        {"key": "profile_info", icon: "user-info-symbolic", label: this._("profile_info")},
+        {"key": "profile_address", icon: "mark-location-symbolic", label: this._("profile_address")},
       ]
 
-      tab_box_3.build(list_box_3, profile_items, this.nav_views)
+       this.nav_views = tab_box_3.build(list_box_3, profile_items, this.nav_views)
 
       /*for(const item of profile_items){
 
@@ -556,33 +788,33 @@ class App extends Adw.Application {
         break
 
         // settings
-        case "item_account":
+        case "account":
           this.settings_comp.build_account_view()
           this.center_stack.setVisibleChildName("settings_account_view")
         break
 
-        case "item_notifications":
+        case "notifications":
           this.settings_comp.build_notifications_view()
           this.center_stack.setVisibleChildName("settings_notifications_view")
         break
 
-        case "item_display":
+        case "display":
            this.settings_comp.build_display_view()
           this.center_stack.setVisibleChildName("settings_display_view")
         break
 
-        case "item_keyboard":
+        case "keyboard":
           this.settings_comp.build_keyboard_view()
           this.center_stack.setVisibleChildName("settings_keyboard_view")
         break
 
         // profile
-        case "item_info":
+        case "profile_info":
           this.profile_comp.build_info_view()
           this.center_stack.setVisibleChildName("profile_info_view")
         break
 
-        case "item_address":
+        case "profile_address":
           this.profile_comp.build_address_view()
           this.center_stack.setVisibleChildName("profile_address_view")
         break
@@ -666,16 +898,13 @@ class App extends Adw.Application {
           const styleManager = Adw.StyleManager.getDefault();
           styleManager.colorScheme = settings.is_dark_mode ? Adw.ColorScheme.PREFER_DARK : Adw.ColorScheme.PREFER_LIGHT;
 
-
-
-
           this.active_user = user
           this.active_user_role = user.role
           this.active_username = user.name
           
-           if(this.left_sidebar){
+          if(this.left_sidebar){
               this.left_sidebar.updateLeftLabel(user.name)
-            }
+          }
           this.outer_split_view.setVisible(true)
           this.root_navigation_stack.setVisibleChildName("main_layout")
 
@@ -706,6 +935,7 @@ class App extends Adw.Application {
 
         
         })
+        this.register_widget(copy_lbl, "label", "copied")
         //copy_lbl.setVisible(false)
 
         const copy_item_btn = new Gtk.Button({
@@ -794,13 +1024,12 @@ class App extends Adw.Application {
               } catch (error) {
                 console.error("Failed to update system clipboard:", error);
               }
-                
-               
-                
             }
 
     }
 
+
+    
 
 }
 

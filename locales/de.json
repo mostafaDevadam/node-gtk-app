@@ -1,0 +1,19 @@
+{
+  
+    "home": "Startseite",
+    "settings": "Einstellungen",
+    "profile": "Profil",
+    "bookings": "Buchungen",
+    "trips": "Fahrten",
+    "buses": "Busse",
+    "history": "Verlauf",
+    "audit_logs": "Audit-Protokolle",
+    "account": "Benachrichtigungen",
+    "notifications": "Benachrichtigungen",
+    "display": "Anzeige",
+    "keyboard": "Tastatur",
+    "profile_info": "Info",
+    "profile_address": "Adresse",
+
+  "copied": "Kopiert"
+}

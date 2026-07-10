@@ -114,7 +114,7 @@ export class SettingsComponent {
 
           const styleManager = Adw.StyleManager.getDefault();
           styleManager.colorScheme = isDarkMode ? Adw.ColorScheme.PREFER_DARK : Adw.ColorScheme.PREFER_LIGHT;
-        
+          
           // save dark-mode in settings.json
           if(this.app){
             const user = this.app.active_user

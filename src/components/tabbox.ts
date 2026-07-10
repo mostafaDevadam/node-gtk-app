@@ -14,7 +14,8 @@ export class TabBoxComponent extends Gtk.Box {
         marginTop: 12,
     })
     this.app = app
-     const page_wrapper = this.app.view_stack.addTitled(this, wrapper_title, key)
+     const page_wrapper = this.app.view_stack.addTitled(this, wrapper_title, app._(key))
+     this.app.register_widget(page_wrapper, "title", key);
      page_wrapper.setIconName(icon_name)
 
   }
@@ -28,7 +29,12 @@ export class TabBoxComponent extends Gtk.Box {
           marginStart: 8,
           marginEnd: 8,
         })
-        row.setTitle(item.key)   
+        row.setTitle(item.label ?? item.key)   
+        
+        this.app.register_widget(row, "title", item.key);
+        
+        
+
         row.setActivatable(true)
         const icon_prefix = Gtk.Image.newFromIconName(item.icon)
         row.addPrefix(icon_prefix)

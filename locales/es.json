@@ -1,0 +1,9 @@
+{
+  "sidebar": {
+    "bookings": "Reservas",
+    "trips": "Viajes",
+    "buses": "Autobuses",
+    "history": "Historial",
+    "audit_logs": "Registros de Auditoría"
+  }
+}
