@@ -32,13 +32,17 @@ export class LeftSidebar extends Gtk.Box {
         this.label = new Gtk.Label({ label: "welcome"})
         this.append(this.label);
 
+        if (this.app.active_username) {
+            this.updateLeftLabel(this.app.active_username);
+        }
+
         
 
 
     }
 
     public updateLeftLabel(username: string) {
-        this.label.setText(`left_sidebar - ${AuthInstance.loggedIn_user.name}`)
+        this.label.setText(`left_sidebar - ${username}`)
         //this.label.text = `left_sidebar - ${AuthInstance.loggedIn_user.name}`
     }
 

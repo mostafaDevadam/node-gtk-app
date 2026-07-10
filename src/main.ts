@@ -141,6 +141,7 @@ class App extends Adw.Application {
     toastOverlay: any
     outer_split_view: any
     root_navigation_stack: any
+    auth_nav_stack: any
     left_sidebar: any
     right_sidebar: any
     center_stack: any
@@ -265,13 +266,16 @@ class App extends Adw.Application {
       
 
         //
-        this.check_auto_login()
+        
 
 
 
         //
-     const auth_nav_stack = new AuthComponent(this)
-     this.root_navigation_stack.addNamed(auth_nav_stack, "auth_layout")
+     this.auth_nav_stack = new AuthComponent(this)
+     this.auth_nav_stack.setVisible(false)
+     this.root_navigation_stack.addNamed(this.auth_nav_stack, "auth_layout")
+
+     this.check_auto_login()
 
         // test in center_stack
          const test_center_box = new Gtk.Box({
@@ -284,7 +288,7 @@ class App extends Adw.Application {
         });
         test_center_box.append(new Gtk.Label({ label: 'test_center_box' }));
        
-        const test_center_btn = new Gtk.Button({
+        const test_logout_btn = new Gtk.Button({
           label: "Logout",
           marginStart: 20,
           marginTop: 20,
@@ -293,16 +297,24 @@ class App extends Adw.Application {
 
         })
 
-        test_center_box.append(test_center_btn)
+        test_center_box.append(test_logout_btn)
         this.center_stack.addNamed(test_center_box, "test_center_box")
 
-        test_center_btn.on("clicked", () => {
+        test_logout_btn.on("clicked", async () => {
           console.log("test-btn...1")
           //outer_split_view.setVisible(true)
           //root_navigation_stack.setVisibleChildName("login_layout")
+          const removed = await StorageService.removeJsonFile("storage", "config")
+
+          if(removed){
+            this.auth_nav_stack.setVisible(true)
+            this.outer_split_view.setVisible(false)
+            this.auth_nav_stack.setVisibleChildName("login_layout")
+            this.root_navigation_stack.setVisibleChildName("auth_layout")
+          }
+
          
-          auth_nav_stack.setVisibleChildName("login_layout")
-          this.root_navigation_stack.setVisibleChildName("auth_layout")
+         
         })
 
         
@@ -332,9 +344,13 @@ class App extends Adw.Application {
     async check_auto_login(){
           const config = await StorageService.readFromJsonAsObject("storage", "config") as {auto_login: boolean, saved_email: string}
 
-          if(!config) {
+          if(!config || !config.saved_email || !config.auto_login) {
             console.log("no config for auto-login")
+            this.auth_nav_stack.setVisible(true)
+            this.outer_split_view.setVisible(false)
+            
             this.root_navigation_stack.setVisibleChildName("auth_layout")
+            this.auth_nav_stack.setVisibleChildName("login_layout")
             return
           }
 
@@ -347,7 +363,10 @@ class App extends Adw.Application {
 
           if(!user){
             console.log("user is not found!")
+            this.auth_nav_stack.setVisible(true)
+            this.outer_split_view.setVisible(false)
             this.root_navigation_stack.setVisibleChildName("auth_layout")
+            this.auth_nav_stack.setVisibleChildName("login_layout")
             return
           }
 
@@ -358,7 +377,7 @@ class App extends Adw.Application {
           this.active_username = user.name
           
            if(this.left_sidebar){
-              this.left_sidebar.updateLeftLabel("user.name")
+              this.left_sidebar.updateLeftLabel(user.name)
             }
           this.outer_split_view.setVisible(true)
           this.root_navigation_stack.setVisibleChildName("main_layout")

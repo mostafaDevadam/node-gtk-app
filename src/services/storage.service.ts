@@ -1,4 +1,4 @@
-import { mkdir, writeFile, readFile } from 'fs/promises'
+import { mkdir, writeFile, readFile, rm } from 'fs/promises'
 import { join } from 'path'
 
 
@@ -111,10 +111,24 @@ const saveData = async (folder_name: string, file_name: string, data: any) => {
       }
 }
 
+const removeJsonFile = async (folder_name: string, file_name: string) => {
+      const file_path = join(process.cwd(), folder_name, `${file_name}.json`)
+      try {
+        await rm(file_path, {force: true})
+        console.log("success removed json file")
+        return true
+      }catch(error) {
+        console.log("cannot remove json file")
+        return false
+      }
+
+}
+
 
 export const StorageService = {
     readFromJson,
     saveInJson,
     saveData,
     readFromJsonAsObject,
+    removeJsonFile,
 }
