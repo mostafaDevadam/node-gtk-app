@@ -34,12 +34,13 @@ import { USER } from './types.js';
 import { UserRole } from './enums.js';
 import { StorageService } from './services/storage.service.js';
 import { UserService } from './services/user.service.js';
+import { TabBoxComponent } from './components/tabbox.js';
 
 process.argv = [process.argv[0]];
 
 
 const APP_ID = 'com.example.MNodeGtk'
-
+/*
 const loop = GLib.MainLoop.new(null, false)
 const app = new Adw.Application({ applicationId: APP_ID, flags: Gio.ApplicationFlags.FLAGS_NONE })
 
@@ -132,6 +133,65 @@ app.on('activate', () => {
 
 // Must be the last statement — returns immediately under ESM (see top of file).
 //app.run([])
+*/
+
+
+
+class TemplateView {
+
+  app: any
+  constructor(app: any){
+    this.app = app
+  }
+
+  build_template_view(action_bar_title: any, layout_name: any, box: any) {
+
+       const action_bar = new Gtk.HeaderBar({
+        showTitleButtons: false,
+       })
+        const actionBar_title = new Gtk.Label({label: action_bar_title})
+        actionBar_title.addCssClass("heading")
+        // add actionBar_title in action_bar
+        action_bar.setTitleWidget(actionBar_title)
+        const wrapper = new Adw.ToolbarView()
+        // add action_bar in wrapper
+        wrapper.addTopBar(action_bar)
+        //
+        const scroll_win = new Gtk.ScrolledWindow()
+        scroll_win.setPolicy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        //
+        
+        const content_box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 12,
+          marginTop: 20,
+          marginBottom: 24,
+          marginStart: 24,
+          marginEnd: 24,
+        })
+        //# add box in content-box
+        content_box.append(box)
+        //# add content-box in scroll
+        scroll_win.setChild(content_box)
+        //# add scroll in wrapper
+        wrapper.setContent(scroll_win)
+
+        this.safely_add_to_center_stack(wrapper, layout_name)
+
+
+                       
+    }
+
+
+    safely_add_to_center_stack(widget: any, key: any) {
+        const existing = this.app.center_stack.getChildByName(key)
+        if (existing){
+           this.app.center_stack.remove(existing)
+        }
+           
+        this.app.center_stack.addNamed(widget, key)
+    }
+}
 
 
 class App extends Adw.Application {
@@ -151,6 +211,8 @@ class App extends Adw.Application {
     active_user: USER = {}
     active_username = ""
     active_user_role: UserRole = UserRole.employee
+
+    nav_views = {}
 
     constructor() {
       super({applicationId: APP_ID, flags: Gio.ApplicationFlags.FLAGS_NONE })
@@ -240,12 +302,8 @@ class App extends Adw.Application {
 
       // home-tab  
       // 2.tab-box
-      const tab_box_1 = new Gtk.Box({
-        orientation: Gtk.Orientation.VERTICAL,
-        spacing: 6,
-        marginTop: 12,
-      })
-      tab_box_1.append(new Gtk.Label({label: "Tab1"}))
+      const tab_box_1 = new TabBoxComponent(this, "Home", "home", "user-home-symbolic")
+     
       
 
       // 3.listbox
@@ -263,38 +321,17 @@ class App extends Adw.Application {
 
       ]
 
-      for(const item of home_items){
+       tab_box_1.build(list_box_1, home_items, this.nav_views)
 
-        const row = new Adw.ActionRow({
-          marginStart: 8,
-          marginEnd: 8,
-        })
-        row.setTitle(item.key)   
-        row.setActivatable(true)
-        const icon_prefix = Gtk.Image.newFromIconName(item.icon)
-        row.addPrefix(icon_prefix)
-        const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
-        row.addSuffix(icon_suffix)
-        row.connect("activated", ()=>this.on_home_item_clicked(item))
-        list_box_1.append(row)
-         
-      }
+     
 
-      // 5.page
-      const page_wrapper_1 = this.view_stack.addTitled(tab_box_1, "Home", "home")
-      page_wrapper_1.setIconName("user-home-symbolic")
+     
+      
 
 
       // settings tab
       // 2.tab-box
-      const tab_box_2 = new Gtk.Box({
-        orientation: Gtk.Orientation.VERTICAL,
-        spacing: 6,
-        marginTop: 12,
-      })
-      tab_box_2.append(new Gtk.Label({label: "Tab1"}))
-      
-
+      const tab_box_2 = new TabBoxComponent(this, "Settings", "settings", "user-home-symbolic")
       // 3.listbox
       const list_box_2 = new Gtk.ListBox()
       list_box_2.addCssClass("boxed-list")
@@ -309,36 +346,20 @@ class App extends Adw.Application {
 
       ]
 
-      for(const item of settings_items){
+      tab_box_2.build(list_box_2, settings_items, this.nav_views)
 
-        const row = new Adw.ActionRow({
-          marginStart: 8,
-          marginEnd: 8,
-        })
-        row.setTitle(item.key)   
-        row.setActivatable(true)
-        const icon_prefix = Gtk.Image.newFromIconName(item.icon)
-        row.addPrefix(icon_prefix)
-        const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
-        row.addSuffix(icon_suffix)
-        row.connect("activated", ()=>this.on_home_item_clicked(item))
-        list_box_2.append(row)
-         
-      }
-
-      // 5.page
-      const page_wrapper_2 = this.view_stack.addTitled(tab_box_2, "Settings", "settings")
-      page_wrapper_2.setIconName("user-home-symbolic")
+    
 
 
        // profile-tab  
       // 2.tab-box
-      const tab_box_3 = new Gtk.Box({
+      const tab_box_3 = new TabBoxComponent(this, "Profile", "profile", "user-home-symbolic")
+      /*const tab_box_3 = new Gtk.Box({
         orientation: Gtk.Orientation.VERTICAL,
         spacing: 6,
         marginTop: 12,
       })
-      tab_box_3.append(new Gtk.Label({label: "Tab1"}))
+      tab_box_3.append(new Gtk.Label({label: "Tab1"}))*/
       
 
       // 3.listbox
@@ -350,12 +371,11 @@ class App extends Adw.Application {
       const profile_items = [
         {"key": "item_info", icon: "folder-download-symbolic"},
         {"key": "item_address", icon: "drive-harddisk-symbolic"},
-        //{"key": "item_bus's", icon: "drive-harddisk-symbolic"},
-       
-
       ]
 
-      for(const item of profile_items){
+      tab_box_3.build(list_box_3, profile_items, this.nav_views)
+
+      /*for(const item of profile_items){
 
         const row = new Adw.ActionRow({
           title: item.key,
@@ -374,7 +394,7 @@ class App extends Adw.Application {
 
       // 5.page
       const page_wrapper_3 = this.view_stack.addTitled(tab_box_3, "Profile", "profile")
-      page_wrapper_3.setIconName("user-home-symbolic")
+      page_wrapper_3.setIconName("user-home-symbolic")*/
 
 
       /*
@@ -599,22 +619,194 @@ class App extends Adw.Application {
         // profile
         case "item_info":
           //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("profile info")
-          this.center_stack.addNamed(lbl, "profile_info_view")
+          //lbl.setText("profile info")
+          //this.center_stack.addNamed(lbl, "profile_info_view")
+          this.build_profile_info_view()
           this.center_stack.setVisibleChildName("profile_info_view")
+          
         break
 
         case "item_address":
           //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
           //const lbl = new Gtk.Label({label: "profile info"})
-          lbl.setText("profile address")
-          this.center_stack.addNamed(lbl, "profile_address_view")
+          //lbl.setText("profile address")
+          //this.center_stack.addNamed(lbl, "profile_address_view")
+          this.build_profile_address_view()
           this.center_stack.setVisibleChildName("profile_address_view")
         break
 
       }
 
     }
+
+
+
+
+    /*
+    def build_template_view(self, action_bar_title, layout_name, box: Gtk.Box):
+        print("build_settings_template_view")
+        
+        #action-bar-title
+        #action-bar: action-bar(action-bar-title)
+        #box: box(...)
+        #content-box: content-box(box)
+        #scroll: scroll(content-box)
+        #wrapper: wrapper(scroll), wrapper(action-bar)
+        #center_stack(wrapper)
+        #
+        
+        action_bar = Gtk.HeaderBar()
+        action_bar.set_show_title_buttons(False)
+        actionBar_title = Gtk.Label(label= action_bar_title)
+        actionBar_title.add_css_class("heading")
+        # add actionBar_title in action_bar
+        action_bar.set_title_widget(actionBar_title)
+        wrapper = Adw.ToolbarView()
+        # add action_bar in wrapper
+        wrapper.add_top_bar(action_bar)
+        #
+        scroll_win = Gtk.ScrolledWindow()
+        scroll_win.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        #
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        content_box.set_margin_top(20)
+        content_box.set_margin_bottom(24)
+        content_box.set_margin_start(24)
+        content_box.set_margin_end(24)
+        # add box in content-box
+        content_box.append(box)
+        # add content-box in scroll
+        scroll_win.set_child(content_box)
+        # add scroll in wrapper
+        wrapper.set_content(scroll_win)
+
+        #
+        self.safely_add_to_center_stack(wrapper, layout_name)
+        #
+        #existing =  self.center_stack.get_child_by_name(layout_name)
+        #if existing:
+        #    self.center_stack.remove(existing)
+        #self.center_stack.add_named(wrapper, layout_name)
+    
+    
+    */
+
+    build_template_view(action_bar_title: any, layout_name: any, box: any) {
+
+       const action_bar = new Gtk.HeaderBar({
+        showTitleButtons: false,
+       })
+        const actionBar_title = new Gtk.Label({label: action_bar_title})
+        actionBar_title.addCssClass("heading")
+        // add actionBar_title in action_bar
+        action_bar.setTitleWidget(actionBar_title)
+        const wrapper = new Adw.ToolbarView()
+        // add action_bar in wrapper
+        wrapper.addTopBar(action_bar)
+        //
+        const scroll_win = new Gtk.ScrolledWindow()
+        scroll_win.setPolicy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        //
+        
+        const content_box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 12,
+          marginTop: 20,
+          marginBottom: 24,
+          marginStart: 24,
+          marginEnd: 24,
+        })
+        //# add box in content-box
+        content_box.append(box)
+        //# add content-box in scroll
+        scroll_win.setChild(content_box)
+        //# add scroll in wrapper
+        wrapper.setContent(scroll_win)
+
+        this.safely_add_to_center_stack(wrapper, layout_name)
+
+
+                       
+    }
+
+
+    safely_add_to_center_stack(widget: any, key: any) {
+        const existing = this.center_stack.getChildByName(key) //get_child_by_name(key)
+        if (existing){
+           this.center_stack.remove(existing)
+        }
+           
+        this.center_stack.addNamed(widget, key)
+    }
+
+    build_profile_info_view(){
+
+
+      /*
+      box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        #box.set_margin_top(12)
+        box.set_margin_bottom(12)
+        box.set_margin_start(12)
+        box.set_margin_end(12)
+        box.set_size_request(240, -1)
+        #
+        lbl = Gtk.Label(label="general test...")
+        #box.append(lbl)
+        #
+        group = Adw.PreferencesGroup()
+        self.register_widget(group, "title", "setting_general_item")
+        #
+        animation_row = Adw.SwitchRow()
+        self.register_widget(animation_row, "title", "animations")
+        group.add(animation_row)
+        box.append(group)
+
+        #
+        self.build_template_view(action_bar_title="General",layout_name="settings_general_view", box=box)
+      */
+
+        const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "info#"})
+        box.append(lbl)
+
+
+
+        //this.build_template_view("Info","profile_info_view", box)
+        const temp = new TemplateView(this)
+        temp.build_template_view("Info","profile_info_view", box)
+    }
+
+    build_profile_address_view(){
+       const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "address#"})
+        box.append(lbl)
+
+
+
+        //this.build_template_view("Address","profile_address_view", box)
+        const temp = new TemplateView(this)
+        temp.build_template_view("Address","profile_address_view", box)
+    }
+
+
 
 
     clear_center_stack(){
@@ -673,6 +865,8 @@ class App extends Adw.Application {
   
 
 }
+
+
 
 
 const app2 = new App()
