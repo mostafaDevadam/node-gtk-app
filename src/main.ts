@@ -258,10 +258,15 @@ class App extends Adw.Application {
     private async initI18n(): Promise<void> {
         const systemLang = (process.env.LANG || 'de').split('_')[0].split('.')[0];
 
-       
+          // 2. Determine default locale matching the current layout text direction fallback
+        const curr_direction = Gtk.Widget.getDefaultDirection();
+        const directionLang = (curr_direction === Gtk.TextDirection.RTL) ? "ar" : "en";
+
+        // 3. Priority Ladder: Use explicit tracker value -> fallback to system environment locale -> fallback to text layout baseline
+        const activeLocale = this.currentLang || systemLang || directionLang;
 
         await i18next.init({
-            lng: this.currentLang,
+            lng: activeLocale,
             fallbackLng: 'en',
             resources: {
                 en: { translation: enTranslation },
@@ -390,6 +395,16 @@ class App extends Adw.Application {
       styles.addFile(new URL('../style.css', import.meta.url))
 
       //
+     /* const curr_direction = Gtk.Widget.getDefaultDirection()
+
+      if (curr_direction == Gtk.TextDirection.RTL){
+          i18next.changeLanguage("ar")
+          this.currentLang = "ar"
+      }else {
+          i18next.changeLanguage("en")
+          this.currentLang = "en"
+      }*/
+      //
       this.toastOverlay = new Adw.ToastOverlay({ vexpand: true })
 
      // 1. Create your header bar and content box
@@ -421,6 +436,12 @@ class App extends Adw.Application {
       //content: toolbarView // This assigns the root child safely via GObject properties
     });
 
+    if (this.currentLang === "ar") {
+        this.window.setDirection(Gtk.TextDirection.RTL);
+    } else {
+        this.window.setDirection(Gtk.TextDirection.LTR);
+    }
+
     // set
     //this.toastOverlay = new Adw.ToastOverlay()
     this.toastOverlay.setChild(headerBar)
@@ -432,7 +453,7 @@ class App extends Adw.Application {
     this.window.setContent(toolbarView)
 
     this.window.setTitle('M Node Gtk (TypeScript)');
-    this.window.setDefaultSize(640, 520);
+    this.window.setDefaultSize(800, 700);
 
     this.window.on('close-request', (): boolean => {
       this.loop.quit();
@@ -472,12 +493,51 @@ class App extends Adw.Application {
           this.currentLang = next_lang
           lang_btn.setLabel(btnLabel)
 
+
+          /*if(this.window){
+            if(next_lang === "ar"){ 
+              this.window.setDirection(Gtk.TextDirection.RTL)
+              this.window.queueDraw()
+               
+            }else {
+              this.window.setDirection(Gtk.TextDirection.LTR)
+              this.window.queueDraw()
+               
+            }*/
+
+              if (this.window) {
+                const targetDirection = (next_lang === "ar") ? Gtk.TextDirection.RTL : Gtk.TextDirection.LTR;
+                
+                // Fix 1: Try the standard snake_case binding method if camelCase failed
+                if (typeof (this.window as any).setDirection === 'function') {
+                    this.window.setDirection(targetDirection);
+                } else if (typeof (this.window as any).set_direction === 'function') {
+                    (this.window as any).set_direction(targetDirection);
+                }
+
+                // Fix 2: Set the default direction globally so any newly navigated/built views inherit it
+                Gtk.Widget.setDefaultDirection(targetDirection);
+
+                // Force redraw
+                this.window.queueDraw();
+                this.window.queueResize();
+
+
+      
+
+          }
+
+
+          
+
           this.refresh_all_translations();
 
           // 2. FORCE the active page layout view dictionary to re-sync
           if (typeof this.refresh_row_dictionaries === 'function') {
               this.refresh_row_dictionaries();
           }
+
+
 
            console.log("Language successfully switched to:", next_lang);
         } catch (error) {
@@ -759,7 +819,7 @@ class App extends Adw.Application {
 
       switch(key){
         // home
-        case "item_bookings":
+        case "bookings":
           //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
           //lbl.setText("bookings")
           //this.center_stack.addNamed(lbl, "home_bookings_view")
@@ -767,22 +827,22 @@ class App extends Adw.Application {
           this.center_stack.setVisibleChildName("home_bookings_view")
         break
 
-        case "item_trips":
+        case "trips":
           this.trips_comp.build_trips_view()
           this.center_stack.setVisibleChildName("home_trips_view")
         break
 
-        case "item_buses":
+        case "buses":
           this.buses_comp.build_trips_view()
           this.center_stack.setVisibleChildName("home_buses_view")
         break
 
-        case "item_history":
+        case "history":
           this.history_comp.build_history_view()
           this.center_stack.setVisibleChildName("home_history_view")
         break
 
-        case "item_audit_logs":
+        case "audit_logs":
           this.audit_logs_comp.build_logs_view()
           this.center_stack.setVisibleChildName("home_audit_logs_view")
         break

@@ -29,7 +29,7 @@ export class TabBoxComponent extends Gtk.Box {
           marginStart: 8,
           marginEnd: 8,
         })
-        row.setTitle(item.label ?? item.key)   
+        //row.setTitle(item.label ?? item.key)   
         
         this.app.register_widget(row, "title", item.key);
         
