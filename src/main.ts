@@ -12,7 +12,7 @@
  * See: https://github.com/romgrk/node-gtk/blob/master/doc/importing.md
  */
 
-import {Adw, GLib, Gio, Gtk} from './index.js'
+import {Adw, GLib, Gio, Gtk, Gdk, GObject} from './index.js'
 
 
 import { styles } from 'node-gtk/styles'
@@ -38,6 +38,13 @@ import { TabBoxComponent } from './components/tabbox.js';
 import { TemplateViewComponent } from './components/template-view.js';
 import path, { join } from 'path';
 import fs from 'fs'
+import { ProfileComponent } from './components/profile.js';
+import { BookingsComponent } from './components/bookings.js';
+import { TripsComponent } from './components/trips.js';
+import { BusesComponent } from './components/buses.js';
+import { HistoryComponent } from './components/history.js';
+import { AuditLogsComponent } from './components/auditlogs.js';
+import { SettingsComponent } from './components/settings.js';
 process.argv = [process.argv[0]];
 
 
@@ -137,549 +144,18 @@ app.on('activate', () => {
 //app.run([])
 */
 
-class ProfileComponent {
 
-  app: any
-  //template_view: TemplateViewComponent
-  constructor(app: any){
-     this.app = app
-     //this.template_view = new TemplateViewComponent(this.app)
-  }
 
-  build_info_view(){
 
-    const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "info#"})
-        box.append(lbl)
 
-        const group = new Adw.PreferencesGroup()
-        //self.register_widget(group, "title", "setting_general_item")
-        
-        //const animation_row = new Adw.SwitchRow()
-        //self.register_widget(animation_row, "title", "animations")
-        //group.add(animation_row)
-        box.append(group)
 
 
-        const name_row = new Adw.ActionRow({title:"Name", subtitle: this.app.active_user.name ?? "test-name"})
-        //name_row.addSuffix(this.app.build_copy_btn(this.app.active_user.name))
-        group.add(name_row)
 
-         const email_row = new Adw.ActionRow({title:"Email", subtitle: this.app.active_user.email ?? "test email"})
-        //name_row.addSuffix(this.app.build_copy_btn(this.app.active_user.email))
-        group.add(email_row)
 
 
 
-        
-        //const temp = new TemplateViewComponent(this)
-        this.app.template_view.build_template_view("Info","profile_info_view", box)
 
-  }
 
-  build_address_view(){
-
-    const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "address#"})
-        box.append(lbl)
-
-        const group = new Adw.PreferencesGroup()
-        box.append(group)
-
-        const street_row = new Adw.ActionRow({title:"Street", subtitle: "test-street"})
-        //street_row.addSuffix(this.app.build_copy_btn(this.app.active_user.name))
-        group.add(street_row)
-
-         const city_row = new Adw.ActionRow({title:"City", subtitle: "test-city"})
-        //city_row.addSuffix(this.app.build_copy_btn(this.app.active_user.email))
-        group.add(city_row)
-
-
-
-       
-        //const temp = new TemplateViewComponent(this)
-        this.app.template_view.build_template_view("Address","profile_address_view", box)
-
-  }
-}
-
-
-class BookingsComponent {
-
-   app: any
-
-  constructor(app: any){
-     this.app = app
-  }
-
-  build_bookings_view(){
-
-     const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "bookings#"})
-        box.append(lbl)
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Bookings","home_bookngs_view", box)
-
-  }
-
-}
-
-class TripsComponent {
-
-   app: any
-
-  constructor(app: any){
-     this.app = app
-  }
-
-  build_trips_view(){
-
-     const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "Trips#"})
-        box.append(lbl)
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Trips","home_trips_view", box)
-
-  }
-
-}
-
-class BusesComponent {
-
-   app: any
-
-  constructor(app: any){
-     this.app = app
-  }
-
-  build_trips_view(){
-
-     const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "Buses#"})
-        box.append(lbl)
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Buses","home_buses_view", box)
-
-  }
-
-}
-
-
-class HistoryComponent {
-
-   app: any
-
-  constructor(app: any){
-     this.app = app
-  }
-
-  build_history_view(){
-
-     const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "History#"})
-        box.append(lbl)
-
-
-
-        
-       
-        this.app.template_view.build_template_view("History","home_history_view", box)
-
-  }
-
-}
-
-
-class AuditLogsComponent {
-
-   app: any
-
-  constructor(app: any){
-     this.app = app
-  }
-
-  build_logs_view(){
-
-     const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "AuditLogs#"})
-        box.append(lbl)
-
-
-
-        
-       
-        this.app.template_view.build_template_view("AuditLogs","home_audit_logs_view", box)
-
-  }
-
-}
-
-
-class SettingsComponent {
-
-   app: any
-   sidebar_image_container: any
-
-   keyboard_options = ["English (US)", "Arabic", "German (QWERTZ)"]
-
-  constructor(app: any){
-     this.app = app
-  }
-
-
-  build_account_view(){
-
-     const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "Account#"})
-        box.append(lbl)
-
-        const group = new Adw.PreferencesGroup()
-        //self.register_widget(group, "title", "setting_general_item")
-        box.append(group)
-
-
-        const name_row = new Adw.ActionRow({title:"Name", subtitle: this.app.active_user.name ?? "test-name"})
-        //name_row.addSuffix(this.app.build_copy_btn(this.app.active_user.name))
-        group.add(name_row)
-
-         const email_row = new Adw.ActionRow({title:"Email", subtitle: this.app.active_user.email ?? "test email"})
-        //name_row.addSuffix(this.app.build_copy_btn(this.app.active_user.email))
-        group.add(email_row)
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Account","settings_account_view", box)
-
-  }
-
-   build_notifications_view(){
-
-     const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-        })
-
-
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "Notifications#"})
-        box.append(lbl)
-
-        const group = new Adw.PreferencesGroup()
-        group.setTitle("Notifications")
-        //this.app.register_widget(group, "title", "setting_general_item")
-        
-        const animation_row = new Adw.SwitchRow()
-        animation_row.setTitle("Enable")
-        //this.app.register_widget(animation_row, "title", "animations")
-        group.add(animation_row)
-        box.append(group)
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Notifications","settings_notifications_view", box)
-
-  }
-
-   build_display_view(){
-
-     const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "Display#"})
-        box.append(lbl)
-
-
-        const group = new Adw.PreferencesGroup()
-        group.setTitle("Display")
-        //this.app.register_widget(group, "title", "setting_general_item")
-        
-        const dark_mode_row = new Adw.SwitchRow()
-        dark_mode_row.setTitle("Dark Mode")
-        dark_mode_row.connect("notify::active", () => {
-          console.log("dark_mode_row")
-          const isDarkMode = dark_mode_row.active;
-          console.log("dark-mode:", isDarkMode)
-
-          const styleManager = Adw.StyleManager.getDefault();
-          styleManager.colorScheme = isDarkMode ? Adw.ColorScheme.PREFER_DARK : Adw.ColorScheme.PREFER_LIGHT;
-        })
-        //this.app.register_widget(dark_mode_row, "title", "dark_mode")
-        group.add(dark_mode_row)
-        box.append(group)
-
-         
-        //dark_mode_row.connect("notify::active", self.on_dark_mode_toggle_changed)
-        //self.register_widget(dark_mode_row, "title", "dark_mode")
-        
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Display","settings_display_view", box)
-
-  }
-
-   build_keyboard_view(){
-
-     const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "Keyboard#"})
-        box.append(lbl)
-
-        this.app.clear_right_sidebar()
-
-        const group = new Adw.PreferencesGroup()
-        group.setTitle("Display")
-        box.append(group)
-
-        this.sidebar_image_container = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 12,
-          marginTop: 20,
-          marginStart: 16,
-          marginEnd: 16,
-         
-        
-        })
-        this.app.right_sidebar.append(this.sidebar_image_container)
-
-        //this.keyboard_options = ["English (US)", "Arabic", "German (QWERTZ)"]
-        const k_layout_row = new Adw.ComboRow({
-          title: "Keyboard Layout"
-        })
-        //self.register_widget(k_layout_row, "title", "layout_title")
-        const k_model = Gtk.StringList.new(this.keyboard_options)
-        k_layout_row.setModel(k_model)
-        k_layout_row.connect("notify::selected", (combo_row) => {
-                  const selected_index = k_layout_row.getSelected()
-                  console.log("selected_index:", selected_index)
-                  if (selected_index === 4294967295 || selected_index < 0 ){
-                      return
-                  }
-                  
-                  this.updated_sidebar_preview_keyboard(selected_index)
-        })
-        group.add(k_layout_row)
-        this.updated_sidebar_preview_keyboard(k_layout_row.getSelected())
-
-        
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Keyboard","settings_keyboard_view", box)
-
-  }
-
-
-  updated_sidebar_preview_keyboard(selectedIndex: number){
-
-    console.log("updated_sidebar_preview_keyboard selectedIndex:", selectedIndex)
-
-    this.clear_widget(this.sidebar_image_container)
-    const image_files : {[key: number]: string}= {
-       0: "en.png",
-       1: "ar.png",
-       2: "de.png"
-    }
-    const file_name = image_files[selectedIndex]
-
-    if(!file_name){
-      console.warn(`No keyboard preview layout image found for index: ${selectedIndex}`);
-      return
-    }
-
-    const image_path = join(process.cwd(), "assets", file_name)
-
-    const info_lbl = new Gtk.Label({
-      marginBottom: 8,
-      cssClasses: ["caption"]
-
-    })
-        
-        
-    const chosen_name = this.keyboard_options[selectedIndex]
-    info_lbl.setText(`Visual Blueprint Preview: ${chosen_name}`)
-    this.sidebar_image_container.append(info_lbl)
-
-    if (fs.existsSync(image_path)){
-        console.log(`Success! File found at: ${image_path}`);
-
-        const keyboard_image = Gtk.Picture.newForFilename(image_path)
-        this.sidebar_image_container.append(keyboard_image)
-
-
-    }else {
-      return false
-    }
-
-
-    /*
-        image_files = {
-            0: "en.png",
-            1: "ar.png",
-            2: "de.png"
-        }
-        #
-        file_name = image_files.get(selected_index, "en.png")
-        #
-        image_path = os.path.join(GLib.get_current_dir(), "assets", file_name)
-        #
-        info_lbl = Gtk.Label()
-        info_lbl.add_css_class("caption")
-        info_lbl.set_margin_bottom(8)
-        #
-        chosen_name = self.keyboard_options[selected_index]
-        info_lbl.set_text(f"Visual Blueprint Preview: {chosen_name}")
-        self.sidebar_image_container.append(info_lbl)
-        #
-        print(f"image path: {image_path}")
-        #
-        
-        
-        #
-        if os.path.exists(image_path):
-            #keyboard_image = Gtk.Image.new_from_file(image_path)
-            keyboard_image = Gtk.Picture.new_for_filename(image_path)
-            #
-            #keyboard_image.set_hexpand(True)
-            #keyboard_image.set_vexpand(True)
-            #
-            
-            self.sidebar_image_container.append(keyboard_image)
-            #self.sidebar_image_container.append(Gtk.Image.new_from_file(os.path.join(GLib.get_current_dir(), "assets", "en.png")))
-        else:
-            return False
-        #
-        self.right_sidebar.queue_allocate()
-    
-    
-    */
-
-
-
-
-
-  }
-
-
-   clear_widget(widget: any){
-        let child = widget.getFirstChild()
-        while(child != null){
-                  widget.remove(child)
-                  child = widget.getFirstChild()
-        }
-      }
-
-}
 
 
 class App extends Adw.Application {
@@ -1046,6 +522,7 @@ class App extends Adw.Application {
       const lbl = new Gtk.Label()
 
      this.clear_center_stack()
+     this.clear_right_sidebar()
                        
 
       switch(key){
@@ -1190,6 +667,194 @@ class App extends Adw.Application {
 
 
     }
+
+    build_copy_btn(item: any){
+
+        const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+          visible: true
+        
+        })
+
+        //box.setVisible(false)
+
+        const copy_icon = Gtk.Image.newFromIconName("edit-copy-symbolic")
+        copy_icon.setMarginTop(12)
+
+        const copy_lbl = new Gtk.Label({
+          label: "Copied",
+          visible: false,
+          marginTop: 12,
+
+        
+        })
+        //copy_lbl.setVisible(false)
+
+        const copy_item_btn = new Gtk.Button({
+          cssClasses: ["flat", "circular"]
+        })
+
+         copy_item_btn.setChild(box)
+         box.append(copy_icon)
+         box.append(copy_lbl)
+
+         //copy_item_btn.setIconName("edit-copy-symbolic")
+         //copy_item_btn.setLabel(copy_lbl.getText())
+         copy_item_btn.setChild(box)
+            
+         //copy_item_btn.item = item
+         copy_item_btn.connect("clicked", () => {
+
+            const display = Gdk.Display.getDefault()
+            const clipboard = display ? display.getClipboard() : null;
+            
+
+            const text_to_copy = typeof item === 'string' ? item : JSON.stringify(item);
+
+            if (text_to_copy && clipboard){
+
+              try {
+
+                const gvalue = new GObject.Value(text_to_copy as String)
+               // const provider =  Gdk.ContentProvider.newForValue(gvalue)
+                //clipboard?.setContent(provider)
+
+               if (typeof (clipboard as any).setText === 'function') {
+                (clipboard as any).setText(text_to_copy);
+                } else if (typeof (clipboard as any).set_text === 'function') {
+                    (clipboard as any).set_text(text_to_copy);
+                } else {
+                 
+                  const encoder = new TextEncoder();
+                  const uint8Array = encoder.encode(text_to_copy);
+
+                  // 2. Pass the typed array to GLib.Bytes
+                  // In node-gtk, GLib.Bytes.new() natively takes an array/Uint8Array block directly
+                  const plainNumbersArray = Array.from(uint8Array);
+                  const gbytes = GLib.Bytes.new(plainNumbersArray);
+
+                  // 3. Create the text/plain provider wrapper using your camelCase structure
+                  const provider = Gdk.ContentProvider.newForBytes("text/plain;charset=utf-8", gbytes);
+
+                  // 4. Update the active clipboard content payload
+                  clipboard.setContent(provider);
+
+                }
+
+                copy_icon.visible = false;
+                copy_lbl.visible = true;
+                
+                copy_item_btn.addCssClass("circular");
+                copy_item_btn.setSensitive(false); // Disable it temporarily so they can't spam click it!
+                
+                
+               GLib.timeoutAddSeconds(0, 5, () => {
+                  // Call your reset method using standard JS arrow binding context
+                  this.reset_copy_button(copy_item_btn, copy_icon, copy_lbl);
+                  return false; // Crucial: Returning false ensures the timeout fires exactly ONCE
+              });
+
+                
+              } catch (error) {
+                console.error("Failed to update system clipboard:", error);
+              }
+                
+               
+                
+            }
+
+
+         })
+
+
+         return copy_item_btn
+
+    }
+
+    reset_copy_button(button: any, icon:any, label: any) {
+        icon.visible = true;
+        label.visible = false;
+        button.setSensitive(true);
+        button.removeCssClass("circular"); // Or leave it if you prefer it round permanently!
+    }
+
+    copy(button: any){
+
+    }
+
+    /*
+    def build_copy_btn(self, item):
+            # box
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+
+            # icon
+            copy_icon = Gtk.Image.new_from_icon_name("edit-copy-symbolic")
+            # label
+            copy_label = Gtk.Label(label="Copied")
+            copy_label.set_visible(False)
+            # button
+            copy_item_btn = Gtk.Button()
+            copy_item_btn.add_css_class("flat")
+            copy_item_btn.add_css_class("circular")
+            #copy_item_btn.set_child(copy_icon)
+            #
+            copy_item_btn.set_child(box)
+            box.append(copy_icon)
+            box.append(copy_label)
+
+            #
+            copy_item_btn.icon_widget = copy_icon
+            copy_item_btn.label_widget = copy_label
+            #
+            copy_item_btn.item = item
+            copy_item_btn.connect("clicked", self.copy)
+            #
+            
+        
+            return copy_item_btn
+
+    def copy(self, button):
+            import time
+
+            print(f"copy_btn..."),   
+            display = Gdk.Display.get_default()
+            clipboard = display.get_clipboard()
+            #
+            item = getattr(button, "item", "Unknown")
+            print(f"clicked copy_icon name: {item}")
+            #
+            text_to_copy = item #self.active_user.get("email", "N/A")
+            if text_to_copy:
+                #clipboard.set_text(text_to_copy)
+                gvalue = GObject.Value(GObject.TYPE_STRING, text_to_copy)
+                provider =  Gdk.ContentProvider.new_for_value(gvalue)
+                clipboard.set_content(provider)
+                print(f"Copied text: {text_to_copy}")
+                #
+                #button.set_label("Copied")
+                #GLib.timeout_add_seconds(5, lambda:  button.set_child(Gtk.Image.new_from_icon_name("edit-copy-symbolic")))
+                button.icon_widget.set_visible(False)
+                button.label_widget.set_visible(True)
+                button.add_css_class("circular")
+                button.set_sensitive(True)
+                #
+                GLib.timeout_add_seconds(5, lambda:  self.reset_copy_button(button))
+                #
+
+
+
+            #
+    def reset_copy_button(self, button):
+        button.label_widget.set_visible(False)
+        button.icon_widget.set_visible(True)
+        button.add_css_class("circular")
+        button.set_sensitive(True)
+    
+    */
 
   
 
