@@ -35,6 +35,7 @@ import { UserRole } from './enums.js';
 import { StorageService } from './services/storage.service.js';
 import { UserService } from './services/user.service.js';
 import { TabBoxComponent } from './components/tabbox.js';
+import { TemplateViewComponent } from './components/template-view.js';
 
 process.argv = [process.argv[0]];
 
@@ -135,62 +136,332 @@ app.on('activate', () => {
 //app.run([])
 */
 
-
-
-class TemplateView {
+class ProfileComponent {
 
   app: any
+  //template_view: TemplateViewComponent
   constructor(app: any){
-    this.app = app
+     this.app = app
+     //this.template_view = new TemplateViewComponent(this.app)
   }
 
-  build_template_view(action_bar_title: any, layout_name: any, box: any) {
+  build_info_view(){
 
-       const action_bar = new Gtk.HeaderBar({
-        showTitleButtons: false,
-       })
-        const actionBar_title = new Gtk.Label({label: action_bar_title})
-        actionBar_title.addCssClass("heading")
-        // add actionBar_title in action_bar
-        action_bar.setTitleWidget(actionBar_title)
-        const wrapper = new Adw.ToolbarView()
-        // add action_bar in wrapper
-        wrapper.addTopBar(action_bar)
-        //
-        const scroll_win = new Gtk.ScrolledWindow()
-        scroll_win.setPolicy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        //
-        
-        const content_box = new Gtk.Box({
+    const box = new Gtk.Box({
           orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 12,
-          marginTop: 20,
-          marginBottom: 24,
-          marginStart: 24,
-          marginEnd: 24,
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
         })
-        //# add box in content-box
-        content_box.append(box)
-        //# add content-box in scroll
-        scroll_win.setChild(content_box)
-        //# add scroll in wrapper
-        wrapper.setContent(scroll_win)
-
-        this.safely_add_to_center_stack(wrapper, layout_name)
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "info#"})
+        box.append(lbl)
 
 
-                       
-    }
+
+        
+        //const temp = new TemplateViewComponent(this)
+        this.app.template_view.build_template_view("Info","profile_info_view", box)
+
+  }
+
+  build_address_view(){
+
+    const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "address#"})
+        box.append(lbl)
 
 
-    safely_add_to_center_stack(widget: any, key: any) {
-        const existing = this.app.center_stack.getChildByName(key)
-        if (existing){
-           this.app.center_stack.remove(existing)
-        }
-           
-        this.app.center_stack.addNamed(widget, key)
-    }
+
+       
+        //const temp = new TemplateViewComponent(this)
+        this.app.template_view.build_template_view("Address","profile_address_view", box)
+
+  }
+}
+
+
+class BookingsComponent {
+
+   app: any
+
+  constructor(app: any){
+     this.app = app
+  }
+
+  build_bookings_view(){
+
+     const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "bookings#"})
+        box.append(lbl)
+
+
+
+        
+       
+        this.app.template_view.build_template_view("Bookings","home_bookngs_view", box)
+
+  }
+
+}
+
+class TripsComponent {
+
+   app: any
+
+  constructor(app: any){
+     this.app = app
+  }
+
+  build_trips_view(){
+
+     const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "Trips#"})
+        box.append(lbl)
+
+
+
+        
+       
+        this.app.template_view.build_template_view("Trips","home_trips_view", box)
+
+  }
+
+}
+
+class BusesComponent {
+
+   app: any
+
+  constructor(app: any){
+     this.app = app
+  }
+
+  build_trips_view(){
+
+     const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "Buses#"})
+        box.append(lbl)
+
+
+
+        
+       
+        this.app.template_view.build_template_view("Buses","home_buses_view", box)
+
+  }
+
+}
+
+
+class HistoryComponent {
+
+   app: any
+
+  constructor(app: any){
+     this.app = app
+  }
+
+  build_history_view(){
+
+     const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "History#"})
+        box.append(lbl)
+
+
+
+        
+       
+        this.app.template_view.build_template_view("History","home_history_view", box)
+
+  }
+
+}
+
+
+class AuditLogsComponent {
+
+   app: any
+
+  constructor(app: any){
+     this.app = app
+  }
+
+  build_logs_view(){
+
+     const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "AuditLogs#"})
+        box.append(lbl)
+
+
+
+        
+       
+        this.app.template_view.build_template_view("AuditLogs","home_audit_logs_view", box)
+
+  }
+
+}
+
+
+class SettingsComponent {
+
+   app: any
+
+  constructor(app: any){
+     this.app = app
+  }
+
+
+  build_account_view(){
+
+     const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "Account#"})
+        box.append(lbl)
+
+
+
+        
+       
+        this.app.template_view.build_template_view("Account","settings_account_view", box)
+
+  }
+
+   build_notifications_view(){
+
+     const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "Notifications#"})
+        box.append(lbl)
+
+
+
+        
+       
+        this.app.template_view.build_template_view("Notifications","settings_notifications_view", box)
+
+  }
+
+   build_display_view(){
+
+     const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "Display#"})
+        box.append(lbl)
+
+
+
+        
+       
+        this.app.template_view.build_template_view("Display","settings_display_view", box)
+
+  }
+
+   build_keyboard_view(){
+
+     const box = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL, 
+          spacing: 10,
+          marginBottom: 12,
+          marginStart: 12,
+          marginEnd: 12,
+         
+        
+        })
+        box.setSizeRequest(240, -1)
+        const lbl = new Gtk.Label({label: "Keyboard#"})
+        box.append(lbl)
+
+
+
+        
+       
+        this.app.template_view.build_template_view("Keyboard","settings_keyboard_view", box)
+
+  }
+
 }
 
 
@@ -214,12 +485,28 @@ class App extends Adw.Application {
 
     nav_views = {}
 
+    template_view: TemplateViewComponent
+    profile_comp: ProfileComponent
+    bookings_comp: BookingsComponent
+    trips_comp: TripsComponent
+    buses_comp : BusesComponent
+    history_comp: HistoryComponent
+    audit_logs_comp: AuditLogsComponent 
+    settings_comp: SettingsComponent
+
     constructor() {
       super({applicationId: APP_ID, flags: Gio.ApplicationFlags.FLAGS_NONE })
       //this.toastOverlay = new Adw.ToastOverlay()
 
       
-      
+      this.template_view = new TemplateViewComponent(this)
+      this.profile_comp = new ProfileComponent(this)
+      this.bookings_comp = new BookingsComponent(this)
+      this.trips_comp = new TripsComponent(this)
+      this.buses_comp = new BusesComponent(this)
+      this.history_comp = new HistoryComponent(this)
+      this.audit_logs_comp = new AuditLogsComponent(this)
+      this.settings_comp = new SettingsComponent(this)
       
       this.on('activate', () => this.do_activate());
 
@@ -459,9 +746,6 @@ class App extends Adw.Application {
 
       this.root_navigation_stack.addNamed(this.outer_split_view, "main_layout")
       toolbarView.setContent(this.root_navigation_stack)
-
-      
-
         //
         
 
@@ -547,91 +831,64 @@ class App extends Adw.Application {
                        
 
       switch(key){
-
-
         // home
         case "item_bookings":
           //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("bookings")
-          this.center_stack.addNamed(lbl, "home_bookings_view")
+          //lbl.setText("bookings")
+          //this.center_stack.addNamed(lbl, "home_bookings_view")
+          this.bookings_comp.build_bookings_view()
           this.center_stack.setVisibleChildName("home_bookings_view")
         break
 
         case "item_trips":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("trips")
-          this.center_stack.addNamed(lbl, "home_trips_view")
+          this.trips_comp.build_trips_view()
           this.center_stack.setVisibleChildName("home_trips_view")
         break
 
         case "item_buses":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("buses")
-          this.center_stack.addNamed(lbl, "home_buses_view")
+          this.buses_comp.build_trips_view()
           this.center_stack.setVisibleChildName("home_buses_view")
         break
 
         case "item_history":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("history")
-          this.center_stack.addNamed(lbl, "home_history_view")
+          this.history_comp.build_history_view()
           this.center_stack.setVisibleChildName("home_history_view")
         break
 
         case "item_audit_logs":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("audit logs")
-          this.center_stack.addNamed(lbl, "home_audit_logs_view")
+          this.audit_logs_comp.build_logs_view()
           this.center_stack.setVisibleChildName("home_audit_logs_view")
         break
 
-
-
         // settings
         case "item_account":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("settings account")
-          this.center_stack.addNamed(lbl, "settings_account_view")
+          this.settings_comp.build_account_view()
           this.center_stack.setVisibleChildName("settings_account_view")
         break
 
         case "item_notifications":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("settings notifications")
-          this.center_stack.addNamed(lbl, "settings_notifications_view")
+          this.settings_comp.build_notifications_view()
           this.center_stack.setVisibleChildName("settings_notifications_view")
         break
 
         case "item_display":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("settings display")
-          this.center_stack.addNamed(lbl, "settings_display_view")
+           this.settings_comp.build_display_view()
           this.center_stack.setVisibleChildName("settings_display_view")
         break
 
         case "item_keyboard":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          lbl.setText("settings keyboard")
-          this.center_stack.addNamed(lbl, "settings_keyboard_view")
+          this.settings_comp.build_keyboard_view()
           this.center_stack.setVisibleChildName("settings_keyboard_view")
         break
 
         // profile
         case "item_info":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          //lbl.setText("profile info")
-          //this.center_stack.addNamed(lbl, "profile_info_view")
-          this.build_profile_info_view()
+          this.profile_comp.build_info_view()
           this.center_stack.setVisibleChildName("profile_info_view")
-          
         break
 
         case "item_address":
-          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
-          //const lbl = new Gtk.Label({label: "profile info"})
-          //lbl.setText("profile address")
-          //this.center_stack.addNamed(lbl, "profile_address_view")
-          this.build_profile_address_view()
+          this.profile_comp.build_address_view()
           this.center_stack.setVisibleChildName("profile_address_view")
         break
 
@@ -642,92 +899,7 @@ class App extends Adw.Application {
 
 
 
-    /*
-    def build_template_view(self, action_bar_title, layout_name, box: Gtk.Box):
-        print("build_settings_template_view")
-        
-        #action-bar-title
-        #action-bar: action-bar(action-bar-title)
-        #box: box(...)
-        #content-box: content-box(box)
-        #scroll: scroll(content-box)
-        #wrapper: wrapper(scroll), wrapper(action-bar)
-        #center_stack(wrapper)
-        #
-        
-        action_bar = Gtk.HeaderBar()
-        action_bar.set_show_title_buttons(False)
-        actionBar_title = Gtk.Label(label= action_bar_title)
-        actionBar_title.add_css_class("heading")
-        # add actionBar_title in action_bar
-        action_bar.set_title_widget(actionBar_title)
-        wrapper = Adw.ToolbarView()
-        # add action_bar in wrapper
-        wrapper.add_top_bar(action_bar)
-        #
-        scroll_win = Gtk.ScrolledWindow()
-        scroll_win.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        #
-        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content_box.set_margin_top(20)
-        content_box.set_margin_bottom(24)
-        content_box.set_margin_start(24)
-        content_box.set_margin_end(24)
-        # add box in content-box
-        content_box.append(box)
-        # add content-box in scroll
-        scroll_win.set_child(content_box)
-        # add scroll in wrapper
-        wrapper.set_content(scroll_win)
-
-        #
-        self.safely_add_to_center_stack(wrapper, layout_name)
-        #
-        #existing =  self.center_stack.get_child_by_name(layout_name)
-        #if existing:
-        #    self.center_stack.remove(existing)
-        #self.center_stack.add_named(wrapper, layout_name)
-    
-    
-    */
-
-    build_template_view(action_bar_title: any, layout_name: any, box: any) {
-
-       const action_bar = new Gtk.HeaderBar({
-        showTitleButtons: false,
-       })
-        const actionBar_title = new Gtk.Label({label: action_bar_title})
-        actionBar_title.addCssClass("heading")
-        // add actionBar_title in action_bar
-        action_bar.setTitleWidget(actionBar_title)
-        const wrapper = new Adw.ToolbarView()
-        // add action_bar in wrapper
-        wrapper.addTopBar(action_bar)
-        //
-        const scroll_win = new Gtk.ScrolledWindow()
-        scroll_win.setPolicy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        //
-        
-        const content_box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 12,
-          marginTop: 20,
-          marginBottom: 24,
-          marginStart: 24,
-          marginEnd: 24,
-        })
-        //# add box in content-box
-        content_box.append(box)
-        //# add content-box in scroll
-        scroll_win.setChild(content_box)
-        //# add scroll in wrapper
-        wrapper.setContent(scroll_win)
-
-        this.safely_add_to_center_stack(wrapper, layout_name)
-
-
-                       
-    }
+   
 
 
     safely_add_to_center_stack(widget: any, key: any) {
@@ -739,83 +911,22 @@ class App extends Adw.Application {
         this.center_stack.addNamed(widget, key)
     }
 
-    build_profile_info_view(){
-
-
-      /*
-      box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        #box.set_margin_top(12)
-        box.set_margin_bottom(12)
-        box.set_margin_start(12)
-        box.set_margin_end(12)
-        box.set_size_request(240, -1)
-        #
-        lbl = Gtk.Label(label="general test...")
-        #box.append(lbl)
-        #
-        group = Adw.PreferencesGroup()
-        self.register_widget(group, "title", "setting_general_item")
-        #
-        animation_row = Adw.SwitchRow()
-        self.register_widget(animation_row, "title", "animations")
-        group.add(animation_row)
-        box.append(group)
-
-        #
-        self.build_template_view(action_bar_title="General",layout_name="settings_general_view", box=box)
-      */
-
-        const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "info#"})
-        box.append(lbl)
-
-
-
-        //this.build_template_view("Info","profile_info_view", box)
-        const temp = new TemplateView(this)
-        temp.build_template_view("Info","profile_info_view", box)
-    }
-
-    build_profile_address_view(){
-       const box = new Gtk.Box({
-          orientation: Gtk.Orientation.VERTICAL, 
-          spacing: 10,
-          marginBottom: 12,
-          marginStart: 12,
-          marginEnd: 12,
-         
-        
-        })
-        box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "address#"})
-        box.append(lbl)
-
-
-
-        //this.build_template_view("Address","profile_address_view", box)
-        const temp = new TemplateView(this)
-        temp.build_template_view("Address","profile_address_view", box)
-    }
-
-
-
+  
+    clear_right_sidebar(){
+        let child = this.right_sidebar.getFirstChild()
+        while(child != null){
+                  this.right_sidebar.remove(child)
+                  child = this.right_sidebar.getFirstChild()
+        }
+      }
 
     clear_center_stack(){
-       let child = this.center_stack.getFirstChild()
-      while(child != null){
-                this.center_stack.remove(child)
-                child = this.center_stack.getFirstChild()
-       }
-    }
+        let child = this.center_stack.getFirstChild()
+        while(child != null){
+                  this.center_stack.remove(child)
+                  child = this.center_stack.getFirstChild()
+        }
+      }
 
 
     async check_auto_login(){
