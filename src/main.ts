@@ -160,6 +160,49 @@ class ProfileComponent {
         const lbl = new Gtk.Label({label: "info#"})
         box.append(lbl)
 
+        const group = new Adw.PreferencesGroup()
+        //self.register_widget(group, "title", "setting_general_item")
+        
+        //const animation_row = new Adw.SwitchRow()
+        //self.register_widget(animation_row, "title", "animations")
+        //group.add(animation_row)
+        box.append(group)
+
+        /*
+        sidebar2_group = Adw.PreferencesGroup()
+        #sidebar_group.set_title("User Information")
+        name_row = Adw.ActionRow(title="Name", subtitle=self.active_user.get("name", "N/A"))
+        name_row.add_suffix(self.build_copy_btn(self.active_user.get("name", "N/A")))
+        sidebar2_group.add(name_row)
+        #
+        email_row = Adw.ActionRow(title="Email", subtitle=self.active_user.get("email", "N/A"))
+        email_row.add_suffix(self.build_copy_btn(self.active_user.get("email", "N/A")))
+        sidebar2_group.add(email_row)
+        
+        #
+        phone_row = Adw.ActionRow(title="Phone", subtitle=self.active_user.get("phone", "N/A"))
+        phone_row.add_suffix(self.build_copy_btn(self.active_user.get("phone", "N/A")))
+        sidebar2_group.add(phone_row)
+        
+        
+        #
+        web_row = Adw.ActionRow(title="Website", subtitle=self.active_user.get("website", "N/A"))
+        web_row.add_suffix(self.build_copy_btn(self.active_user.get("website", "N/A")))
+        sidebar2_group.add(web_row)
+        
+        #
+        box.append(sidebar2_group)
+        
+        */
+
+        const name_row = new Adw.ActionRow({title:"Name", subtitle: this.app.active_user.name ?? "test-name"})
+        //name_row.addSuffix(this.app.build_copy_btn(this.app.active_user.name))
+        group.add(name_row)
+
+         const email_row = new Adw.ActionRow({title:"Email", subtitle: this.app.active_user.email ?? "test email"})
+        //name_row.addSuffix(this.app.build_copy_btn(this.app.active_user.email))
+        group.add(email_row)
+
 
 
         
@@ -408,6 +451,16 @@ class SettingsComponent {
         const lbl = new Gtk.Label({label: "Notifications#"})
         box.append(lbl)
 
+        const group = new Adw.PreferencesGroup()
+        group.setTitle("Notifications")
+        //this.app.register_widget(group, "title", "setting_general_item")
+        
+        const animation_row = new Adw.SwitchRow()
+        animation_row.setTitle("Enable")
+        //this.app.register_widget(animation_row, "title", "animations")
+        group.add(animation_row)
+        box.append(group)
+
 
 
         
@@ -516,6 +569,7 @@ class App extends Adw.Application {
 
     private do_activate(): void{
       //
+      styles.addFile(new URL('../style.css', import.meta.url))
 
       //
       this.toastOverlay = new Adw.ToastOverlay({ vexpand: true })
@@ -814,10 +868,10 @@ class App extends Adw.Application {
 
 
 
-    //
-
-    this.window.present();
-    this.loop.run();
+      //
+      styles.install()
+      this.window.present();
+      this.loop.run();
            
     }
 
