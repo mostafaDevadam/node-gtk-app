@@ -146,6 +146,8 @@ class App extends Adw.Application {
     right_sidebar: any
     center_stack: any
 
+    view_stack: any
+
     active_user: USER = {}
     active_username = ""
     active_user_role: UserRole = UserRole.employee
@@ -226,12 +228,187 @@ class App extends Adw.Application {
       // right_sidebar
       this.right_sidebar = new RightSidebar();
 
+      
+      //left: 1.view-stack 2.tab-box 3.listbox 4.items 5.page
+      // 1.view-stack
+        this.view_stack = new Adw.ViewStack({
+          vexpand: true,
+          marginStart: 8,
+          marginEnd: 8
+        })
+        
+
+      // home-tab  
+      // 2.tab-box
+      const tab_box_1 = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
+        spacing: 6,
+        marginTop: 12,
+      })
+      tab_box_1.append(new Gtk.Label({label: "Tab1"}))
+      
+
+      // 3.listbox
+      const list_box_1 = new Gtk.ListBox()
+      list_box_1.addCssClass("boxed-list")
+       tab_box_1.append(list_box_1)
+
+      // 4.items
+      const home_items = [
+        {"key": "item_bookings", icon: "folder-download-symbolic"},
+        {"key": "item_trips", icon: "drive-harddisk-symbolic"},
+        {"key": "item_buses", icon: "drive-harddisk-symbolic"},
+        {"key": "item_history", icon: "drive-harddisk-symbolic"},
+        {"key": "item_audit_logs", icon: "drive-harddisk-symbolic"},
+
+      ]
+
+      for(const item of home_items){
+
+        const row = new Adw.ActionRow({
+          marginStart: 8,
+          marginEnd: 8,
+        })
+        row.setTitle(item.key)   
+        row.setActivatable(true)
+        const icon_prefix = Gtk.Image.newFromIconName(item.icon)
+        row.addPrefix(icon_prefix)
+        const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
+        row.addSuffix(icon_suffix)
+        row.connect("activated", ()=>this.on_home_item_clicked(item))
+        list_box_1.append(row)
+         
+      }
+
+      // 5.page
+      const page_wrapper_1 = this.view_stack.addTitled(tab_box_1, "Home", "home")
+      page_wrapper_1.setIconName("user-home-symbolic")
+
+
+      // settings tab
+      // 2.tab-box
+      const tab_box_2 = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
+        spacing: 6,
+        marginTop: 12,
+      })
+      tab_box_2.append(new Gtk.Label({label: "Tab1"}))
+      
+
+      // 3.listbox
+      const list_box_2 = new Gtk.ListBox()
+      list_box_2.addCssClass("boxed-list")
+       tab_box_2.append(list_box_2)
+
+      // 4.items
+      const settings_items = [
+        {"key": "item_account", icon: "folder-download-symbolic"},
+        {"key": "item_notifications", icon: "drive-harddisk-symbolic"},
+        {"key": "item_display", icon: "drive-harddisk-symbolic"},
+        {"key": "item_keyboard", icon: "drive-harddisk-symbolic"},
+
+      ]
+
+      for(const item of settings_items){
+
+        const row = new Adw.ActionRow({
+          marginStart: 8,
+          marginEnd: 8,
+        })
+        row.setTitle(item.key)   
+        row.setActivatable(true)
+        const icon_prefix = Gtk.Image.newFromIconName(item.icon)
+        row.addPrefix(icon_prefix)
+        const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
+        row.addSuffix(icon_suffix)
+        row.connect("activated", ()=>this.on_home_item_clicked(item))
+        list_box_2.append(row)
+         
+      }
+
+      // 5.page
+      const page_wrapper_2 = this.view_stack.addTitled(tab_box_2, "Settings", "settings")
+      page_wrapper_2.setIconName("user-home-symbolic")
+
+
+       // profile-tab  
+      // 2.tab-box
+      const tab_box_3 = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
+        spacing: 6,
+        marginTop: 12,
+      })
+      tab_box_3.append(new Gtk.Label({label: "Tab1"}))
+      
+
+      // 3.listbox
+      const list_box_3 = new Gtk.ListBox()
+      list_box_3.addCssClass("boxed-list")
+       tab_box_3.append(list_box_3)
+
+      // 4.items
+      const profile_items = [
+        {"key": "item_info", icon: "folder-download-symbolic"},
+        {"key": "item_address", icon: "drive-harddisk-symbolic"},
+        //{"key": "item_bus's", icon: "drive-harddisk-symbolic"},
+       
+
+      ]
+
+      for(const item of profile_items){
+
+        const row = new Adw.ActionRow({
+          title: item.key,
+          marginStart: 8,
+          marginEnd: 8,
+          activatable: true,
+        })
+        const icon_prefix = Gtk.Image.newFromIconName(item.icon)
+        row.addPrefix(icon_prefix)
+        const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
+        row.addSuffix(icon_suffix)
+        row.connect("activated", ()=>this.on_home_item_clicked(item))
+        list_box_3.append(row)
+         
+      }
+
+      // 5.page
+      const page_wrapper_3 = this.view_stack.addTitled(tab_box_3, "Profile", "profile")
+      page_wrapper_3.setIconName("user-home-symbolic")
+
+
+      /*
+      
+      
+      */
+     // view_switcher
+     const view_switcher = new Adw.ViewSwitcher({
+      marginTop: 6,
+      marginStart: 2,
+      marginEnd: 2,
+      policy: Adw.ViewSwitcherPolicy.WIDE,
+      //cssClasses: ["custom-view-switcher-bg"],
+      stack: this.view_stack,
+     })
+     view_switcher.addCssClass("custom-view-switcher-bg")
+      
+
+      // left_sidebar.append(self.view_stack)
+      this.left_sidebar.append(view_switcher)
+      this.left_sidebar.append(this.view_stack)
+      
+
+
+
+
       // center_stack
       this.center_stack = new Gtk.Stack({
         transitionType: Gtk.StackTransitionType.CROSSFADE,
         hexpand: true,
         vexpand: true,
       })
+
+     
 
       // scroll
       /*const scroll_win = new Gtk.ScrolledWindow({
@@ -338,6 +515,114 @@ class App extends Adw.Application {
     this.window.present();
     this.loop.run();
            
+    }
+
+
+    on_home_item_clicked(row: any) {
+      const key = row.key
+      console.log("on_home_item_clicked:", key)
+      const lbl = new Gtk.Label()
+
+     this.clear_center_stack()
+                       
+
+      switch(key){
+
+
+        // home
+        case "item_bookings":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("bookings")
+          this.center_stack.addNamed(lbl, "home_bookings_view")
+          this.center_stack.setVisibleChildName("home_bookings_view")
+        break
+
+        case "item_trips":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("trips")
+          this.center_stack.addNamed(lbl, "home_trips_view")
+          this.center_stack.setVisibleChildName("home_trips_view")
+        break
+
+        case "item_buses":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("buses")
+          this.center_stack.addNamed(lbl, "home_buses_view")
+          this.center_stack.setVisibleChildName("home_buses_view")
+        break
+
+        case "item_history":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("history")
+          this.center_stack.addNamed(lbl, "home_history_view")
+          this.center_stack.setVisibleChildName("home_history_view")
+        break
+
+        case "item_audit_logs":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("audit logs")
+          this.center_stack.addNamed(lbl, "home_audit_logs_view")
+          this.center_stack.setVisibleChildName("home_audit_logs_view")
+        break
+
+
+
+        // settings
+        case "item_account":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("settings account")
+          this.center_stack.addNamed(lbl, "settings_account_view")
+          this.center_stack.setVisibleChildName("settings_account_view")
+        break
+
+        case "item_notifications":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("settings notifications")
+          this.center_stack.addNamed(lbl, "settings_notifications_view")
+          this.center_stack.setVisibleChildName("settings_notifications_view")
+        break
+
+        case "item_display":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("settings display")
+          this.center_stack.addNamed(lbl, "settings_display_view")
+          this.center_stack.setVisibleChildName("settings_display_view")
+        break
+
+        case "item_keyboard":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("settings keyboard")
+          this.center_stack.addNamed(lbl, "settings_keyboard_view")
+          this.center_stack.setVisibleChildName("settings_keyboard_view")
+        break
+
+        // profile
+        case "item_info":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          lbl.setText("profile info")
+          this.center_stack.addNamed(lbl, "profile_info_view")
+          this.center_stack.setVisibleChildName("profile_info_view")
+        break
+
+        case "item_address":
+          //this.right_sidebar.append(new Gtk.Label({label: "profile info"}))
+          //const lbl = new Gtk.Label({label: "profile info"})
+          lbl.setText("profile address")
+          this.center_stack.addNamed(lbl, "profile_address_view")
+          this.center_stack.setVisibleChildName("profile_address_view")
+        break
+
+      }
+
+    }
+
+
+    clear_center_stack(){
+       let child = this.center_stack.getFirstChild()
+      while(child != null){
+                this.center_stack.remove(child)
+                child = this.center_stack.getFirstChild()
+       }
     }
 
 

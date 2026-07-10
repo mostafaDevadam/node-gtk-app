@@ -11,10 +11,13 @@
     "rootDir": "src",
     "types": ["node"],
     "paths": {
-      "node-gtk": ["./node_modules/.node-gtk-types/node-gtk.d.ts"]
+      "node-gtk": ["./node_modules/.node-gtk-types/node-gtk"]
     }
   },
-  "include": ["src/**/*.ts"],
-  "files": ["node_modules/.node-gtk-types/node-gtk.d.ts"],
+  "include": [
+    "src/**/*",
+    "./node_modules/.node-gtk-types/**/*"
+  ],
+ 
   
 }

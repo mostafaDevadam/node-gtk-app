@@ -3,7 +3,13 @@ import { AuthInstance, AuthService } from '../services/auth.service.js';
 
 
 
+
+
+
 export class LeftSidebar extends Gtk.Box {
+
+     
+
 
     authService: AuthService
     app: any
