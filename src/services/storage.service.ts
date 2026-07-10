@@ -36,6 +36,33 @@ const readFromJson = async (folder_name: string, file_name: string) => {
 
 }
 
+const readFromJsonAsObject = async (folder_name: string, file_name: string) => {
+      const folder_path = join(process.cwd(), folder_name)
+      const file_path = join(folder_path, `${file_name}.json`)
+
+       try{
+         await mkdir(folder_path, {recursive: true})
+
+         let currentData = {}
+         
+         try {
+          const rawFileContent = await readFile(file_path, "utf-8")
+          currentData = JSON.parse(rawFileContent)
+
+          
+          
+         } catch (error: any) {
+            if(error.code !== 'ENOENT') throw error
+         }
+
+         
+         console.log("Success loaded data from json file as object: ", currentData)
+         return currentData
+        } catch (error) {
+        console.error("Failed to read json file as object")
+      }
+
+}
 
 const saveInJson = async (folder_name: string, file_name: string, data: any) => {
       const folder_path = join(process.cwd(), folder_name)
@@ -89,4 +116,5 @@ export const StorageService = {
     readFromJson,
     saveInJson,
     saveData,
+    readFromJsonAsObject,
 }

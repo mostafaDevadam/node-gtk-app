@@ -96,6 +96,7 @@ export class AuthComponent extends Gtk.Stack{
 
           if(!user){
             console.log("user is not found!!")
+            return
           }
 
           console.log("logged-in user:", user)
@@ -109,6 +110,14 @@ export class AuthComponent extends Gtk.Stack{
             if(this.app.left_sidebar){
               this.app.left_sidebar.updateLeftLabel(user.name)
             }
+            // create auto-login
+            const config_data = {
+                "auto_login": true,
+                "saved_email": user.email,
+            }
+            StorageService.saveData("storage", "config", config_data)
+            //StorageService.saveInJson("storage", "config", config_data)
+            //
             console.log("this.app  AuthInstance.loggedIn_user:",  AuthInstance.loggedIn_user)
             this.app.outer_split_view.setVisible(true)
             this.app.root_navigation_stack.setVisibleChildName("main_layout")

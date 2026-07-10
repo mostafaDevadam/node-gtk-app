@@ -32,6 +32,8 @@ import { LeftSidebar } from './components/left_sidebar.js';
 import { RightSidebar } from './components/right_sidebar.js';
 import { USER } from './types.js';
 import { UserRole } from './enums.js';
+import { StorageService } from './services/storage.service.js';
+import { UserService } from './services/user.service.js';
 
 process.argv = [process.argv[0]];
 
@@ -162,6 +164,8 @@ class App extends Adw.Application {
 
     private do_activate(): void{
       //
+
+      //
       this.toastOverlay = new Adw.ToastOverlay({ vexpand: true })
 
      // 1. Create your header bar and content box
@@ -258,10 +262,14 @@ class App extends Adw.Application {
       this.root_navigation_stack.addNamed(this.outer_split_view, "main_layout")
       toolbarView.setContent(this.root_navigation_stack)
 
-      // auth-stack
-      /*  const auth_nav_stack = new Gtk.Stack({
-        transitionType: Gtk.StackTransitionType.NONE,
-      })*/
+      
+
+        //
+        this.check_auto_login()
+
+
+
+        //
      const auth_nav_stack = new AuthComponent(this)
      this.root_navigation_stack.addNamed(auth_nav_stack, "auth_layout")
 
@@ -292,7 +300,7 @@ class App extends Adw.Application {
           console.log("test-btn...1")
           //outer_split_view.setVisible(true)
           //root_navigation_stack.setVisibleChildName("login_layout")
-
+         
           auth_nav_stack.setVisibleChildName("login_layout")
           this.root_navigation_stack.setVisibleChildName("auth_layout")
         })
@@ -318,6 +326,44 @@ class App extends Adw.Application {
     this.window.present();
     this.loop.run();
            
+    }
+
+
+    async check_auto_login(){
+          const config = await StorageService.readFromJsonAsObject("storage", "config") as {auto_login: boolean, saved_email: string}
+
+          if(!config) {
+            console.log("no config for auto-login")
+            this.root_navigation_stack.setVisibleChildName("auth_layout")
+            return
+          }
+
+          console.log("check_auto_login config:", config)
+
+
+          const userService = new UserService()
+          //if(config.includes)
+          const user = await userService.getUserByEmail(config.saved_email)
+
+          if(!user){
+            console.log("user is not found!")
+            this.root_navigation_stack.setVisibleChildName("auth_layout")
+            return
+          }
+
+          console.log("check_auto_login user:", user)
+
+          this.active_user = user
+          this.active_user_role = user.role
+          this.active_username = user.name
+          
+           if(this.left_sidebar){
+              this.left_sidebar.updateLeftLabel("user.name")
+            }
+          this.outer_split_view.setVisible(true)
+          this.root_navigation_stack.setVisibleChildName("main_layout")
+
+
     }
 
   
