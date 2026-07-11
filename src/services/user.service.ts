@@ -22,7 +22,7 @@ export class UserService {
           const user: USER = {
             ...data,
             id: uuidv4(),
-            role: UserRole.employee,
+            //role: UserRole.employee,
             created_at: new Date().toISOString(),
           }
           await StorageService.saveInJson("storage", "users", user)
