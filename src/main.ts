@@ -96,6 +96,10 @@ class App extends Adw.Application {
     audit_logs_comp: AuditLogsComponent 
     settings_comp: SettingsComponent
 
+    role_text: string = ""
+    role_lbl: any 
+
+
     isAuth = false
 
     private registered_widgets: Array<{ widget: any, prop: string, key: string }> = [];
@@ -117,6 +121,8 @@ class App extends Adw.Application {
       this.history_comp = new HistoryComponent(this)
       this.audit_logs_comp = new AuditLogsComponent(this)
       this.settings_comp = new SettingsComponent(this)
+
+      
 
      
 
@@ -451,6 +457,11 @@ class App extends Adw.Application {
       //this.mainMenuActions()
       //headerBar.packEnd(this.mainMenu())
 
+      this.role_text = `role: ${this.active_user_role}`
+      this.role_lbl = new Gtk.Label({label: this.role_text})
+      this.role_lbl.setVisible(false)
+      headerBar.packStart(this.role_lbl)
+
       // logout-btn
       this.logout_btn = new Gtk.Button({label: "Logout"})
       this.logout_btn.setVisible(false)
@@ -475,9 +486,11 @@ class App extends Adw.Application {
             this.root_navigation_stack.setVisibleChildName("auth_layout")
             this.showToast("logout is success!")
             this.logout_btn.setVisible(false)
+            this.role_lbl.setVisible(false)
          }else {
           this.showToast("logout is failed!")
           this.logout_btn.setVisible(true)
+          this.role_lbl.setVisible(true)
          }
       })
 
@@ -530,16 +543,9 @@ class App extends Adw.Application {
         { "key": "buses", "icon": "avatar-default-symbolic", "label": this._("buses") }, // alternative standard: "view-grid-symbolic"
         { "key": "history", "icon": "document-open-recent-symbolic", "label": this._("history") },
         { "key": "audit_logs", "icon": "view-list-ordered-symbolic","label": this._("audit_logs") }
-
       ]
 
        this.nav_views = tab_box_1.build(list_box_1, home_items, this.nav_views)
-
-     
-
-     
-      
-
 
       // settings tab
       // 2.tab-box
@@ -869,6 +875,7 @@ class App extends Adw.Application {
             
             this.root_navigation_stack.setVisibleChildName("auth_layout")
             this.auth_nav_stack.setVisibleChildName("login_layout")
+            this.role_lbl.setVisible(false)
             return
           }
 
@@ -887,12 +894,14 @@ class App extends Adw.Application {
             this.auth_nav_stack.setVisibleChildName("login_layout")
             this.logout_btn.setVisible(false)
             this.isAuth = false
+            this.role_lbl.setVisible(false)
             return
           }
 
           console.log("check_auto_login user:", user)
 
           this.logout_btn.setVisible(true)
+          this.role_lbl.setVisible(true)
 
           const settings = await StorageService.readFromJsonAsObject("storage", "settings") as {is_dark_mode: boolean, saved_email: string}
 
