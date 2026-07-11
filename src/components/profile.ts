@@ -13,6 +13,8 @@ export class ProfileComponent {
 
   build_info_view(){
 
+    // in center_stack
+
     const box = new Gtk.Box({
           orientation: Gtk.Orientation.VERTICAL, 
           spacing: 10,
@@ -25,6 +27,107 @@ export class ProfileComponent {
         box.setSizeRequest(240, -1)
         //const lbl = new Gtk.Label({label: "info#"})
         //box.append(lbl)
+
+        const edit_btn = new Gtk.Button({ 
+          label: "Edit"
+
+        
+        })
+
+        edit_btn.connect("clicked", () => {
+
+
+          // in right_side
+          const title = new Gtk.Label({
+            label: "Edit Profile Info",
+            halign: Gtk.Align.CENTER,
+            marginTop: 20,
+          
+          })
+          this.app.right_sidebar.append(title)
+
+          // 
+          const group = new Adw.PreferencesGroup({
+            marginTop: 20,
+            marginStart: 20,
+            marginEnd: 20,
+            
+          })
+          
+
+          // close_btn
+          const close_btn = new Gtk.Button({ 
+            label: "Close",
+            halign: Gtk.Align.START
+          })
+          close_btn.connect("clicked", () => {
+             title.setVisible(false)
+             close_btn.setVisible(false)
+             group.setVisible(false)
+          })
+          this.app.right_sidebar.append(close_btn)
+          //
+          this.app.right_sidebar.append(group)
+          // inputs
+          // name
+          const input_name = new Adw.EntryRow({
+            title: "Name",
+            inputPurpose: Gtk.InputPurpose.NAME,
+            
+          })
+          group.add(input_name)
+          // email
+          const input_email = new Adw.EntryRow({
+            title: "Email",
+            inputPurpose: Gtk.InputPurpose.EMAIL,
+            //marginTop: 20,
+          })
+          group.add(input_email)
+           // phone
+          const input_phone = new Adw.EntryRow({
+            title: "Phone",
+            inputPurpose: Gtk.InputPurpose.PHONE,
+            //marginTop: 20,
+          })
+          group.add(input_phone)
+
+
+          // 
+          // submit_btn
+          const submit_btn = new Adw.ActionRow({
+            title: "save",
+            halign: Gtk.Align.CENTER,
+            activatable: true,
+          })
+          
+          /*const submit_btn = new Gtk.Button({ 
+            label: "Save",
+            halign: Gtk.Align.END,
+            marginTop: 40,
+          })*/
+          submit_btn.connect("activated", () => {
+             /*title.setVisible(false)
+             close_btn.setVisible(false)
+             group.setVisible(false)*/
+             this.app.showToast("saved profile info data")
+          })
+          group.add(submit_btn)
+
+
+
+
+
+        })
+
+        box.append(edit_btn)
+
+
+
+
+
+
+        // in center_stack
+        
 
         const group = new Adw.PreferencesGroup()
         //group.setTitle("Information")
@@ -74,6 +177,96 @@ export class ProfileComponent {
         box.setSizeRequest(240, -1)
         //const lbl = new Gtk.Label({label: "address#"})
         //box.append(lbl)
+
+
+         const edit_btn = new Gtk.Button({ 
+          label: "Edit"
+
+        
+        })
+
+        edit_btn.connect("clicked", () => {
+
+
+          // in right_side
+          const title = new Gtk.Label({
+            label: "Edit Profile Address",
+            halign: Gtk.Align.CENTER,
+            marginTop: 20,
+          
+          })
+          this.app.right_sidebar.append(title)
+
+          // 
+          const group = new Adw.PreferencesGroup({
+            marginTop: 20,
+            marginStart: 20,
+            marginEnd: 20,
+            
+          })
+          
+
+          // close_btn
+          const close_btn = new Gtk.Button({ 
+            label: "Close",
+            halign: Gtk.Align.START
+          })
+          close_btn.connect("clicked", () => {
+             title.setVisible(false)
+             close_btn.setVisible(false)
+             group.setVisible(false)
+          })
+          this.app.right_sidebar.append(close_btn)
+          //
+          this.app.right_sidebar.append(group)
+          // inputs
+          // name
+          const input_street = new Adw.EntryRow({
+            title: "Street",
+            inputPurpose: Gtk.InputPurpose.NAME,
+            
+          })
+          group.add(input_street)
+          // email
+          const input_city = new Adw.EntryRow({
+            title: "City",
+            inputPurpose: Gtk.InputPurpose.EMAIL,
+            //marginTop: 20,
+          })
+          group.add(input_city)
+           
+
+
+          // 
+          // submit_btn
+          const submit_btn = new Adw.ActionRow({
+            title: "save",
+            halign: Gtk.Align.CENTER,
+            activatable: true,
+          })
+          
+          /*const submit_btn = new Gtk.Button({ 
+            label: "Save",
+            halign: Gtk.Align.END,
+            marginTop: 40,
+          })*/
+          submit_btn.connect("activated", () => {
+             /*title.setVisible(false)
+             close_btn.setVisible(false)
+             group.setVisible(false)*/
+             this.app.showToast("saved profile address data")
+          })
+          group.add(submit_btn)
+
+
+
+
+
+        })
+
+        box.append(edit_btn)
+
+
 
         const group = new Adw.PreferencesGroup()
         //group.setTitle("Address")
