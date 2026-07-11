@@ -17,13 +17,13 @@ export class AuthService {
         if(!user){
             console.log("Error login cannot login and user not existing!")
             this.isAuth = false
-            return {}
+            return null
         }
 
         if(user.password !== data.password){
              console.log("Error login cannot login and password is incorrect!")
              this.isAuth = false
-            return {}
+            return null
         }
 
         this.loggedIn_user = user
