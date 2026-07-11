@@ -26,8 +26,7 @@ export class TabBoxComponent extends Gtk.Box {
      for(const item of items){
 
         const row = new Adw.ActionRow({
-          marginStart: 8,
-          marginEnd: 8,
+         
         })
         //row.setTitle(item.label ?? item.key)   
         

@@ -153,6 +153,7 @@ import enTranslation from '../locales/en.json' with { type: 'json' };
 import esTranslation from '../locales/es.json' with { type: 'json' };
 import deTranslation from '../locales/de.json' with { type: 'json' };
 import arTranslation from '../locales/ar.json' with { type: 'json' };
+import { MenuLanguagesComponent } from './components/menu_lang.js';
 
 // Simple helper to check the Linux system language environment variable (e.g., "en_US.UTF-8" -> "en")
 const systemLang = (process.env.LANG || 'en').split('_')[0].split('.')[0];
@@ -173,9 +174,6 @@ async function initI18n() {
 
 // Call this before building your GTK Windows!
 //await initI18n();
-
-
-
 
 
 
@@ -232,6 +230,7 @@ class App extends Adw.Application {
       this.history_comp = new HistoryComponent(this)
       this.audit_logs_comp = new AuditLogsComponent(this)
       this.settings_comp = new SettingsComponent(this)
+
 
 
 
@@ -389,6 +388,60 @@ class App extends Adw.Application {
     }
 
 
+    async change_app_language(lang_code: string){
+
+      console.log("change_app_language lang_code:", lang_code)
+
+      const next_lang = lang_code
+
+       try {
+          await i18next.changeLanguage(next_lang)
+          this.currentLang = next_lang
+          
+              if (this.window) {
+                const targetDirection = (next_lang === "ar") ? Gtk.TextDirection.RTL : Gtk.TextDirection.LTR;
+                
+                // Fix 1: Try the standard snake_case binding method if camelCase failed
+                if (typeof (this.window as any).setDirection === 'function') {
+                    this.window.setDirection(targetDirection);
+                } else if (typeof (this.window as any).set_direction === 'function') {
+                    (this.window as any).set_direction(targetDirection);
+                }
+
+                // Fix 2: Set the default direction globally so any newly navigated/built views inherit it
+                Gtk.Widget.setDefaultDirection(targetDirection);
+
+                // Force redraw
+                this.window.queueDraw();
+                this.window.queueResize();
+
+
+      
+
+          }
+
+
+          
+
+          this.refresh_all_translations();
+
+          // 2. FORCE the active page layout view dictionary to re-sync
+          if (typeof this.refresh_row_dictionaries === 'function') {
+              this.refresh_row_dictionaries();
+          }
+
+
+
+           console.log("Language successfully switched to:", next_lang);
+        } catch (error) {
+          console.error("Failed to dynamically switch language:", error);
+        }
+
+
+
+    }
+
+
 
     private do_activate(): void{
       //
@@ -467,95 +520,11 @@ class App extends Adw.Application {
       const menu = new MainMenu(this, this, this.window)
       menu.set_header(headerBar)
 
-      // switch-lang
-      const lang_btn = new Gtk.Button({label: "Language: EN"})
-      let count = 1
-      lang_btn.connect("clicked", async () => {
-        let btnLabel = "Language: EN";
-        let next_lang = "en"
-        switch(count){
-          case 1:
-            next_lang = "en"
-            btnLabel = "EN"
-          break
-           case 2:
-            next_lang = "de"
-             btnLabel = "DE"
-          break
-           case 3:
-            next_lang = "ar"
-             btnLabel = "AR"
-          break
-        }
+      // lang-menu
+      const lang_menu = new MenuLanguagesComponent(this, this.window)
+      lang_menu.set_header(headerBar)
 
-        try {
-          await i18next.changeLanguage(next_lang)
-          this.currentLang = next_lang
-          lang_btn.setLabel(btnLabel)
-
-
-          /*if(this.window){
-            if(next_lang === "ar"){ 
-              this.window.setDirection(Gtk.TextDirection.RTL)
-              this.window.queueDraw()
-               
-            }else {
-              this.window.setDirection(Gtk.TextDirection.LTR)
-              this.window.queueDraw()
-               
-            }*/
-
-              if (this.window) {
-                const targetDirection = (next_lang === "ar") ? Gtk.TextDirection.RTL : Gtk.TextDirection.LTR;
-                
-                // Fix 1: Try the standard snake_case binding method if camelCase failed
-                if (typeof (this.window as any).setDirection === 'function') {
-                    this.window.setDirection(targetDirection);
-                } else if (typeof (this.window as any).set_direction === 'function') {
-                    (this.window as any).set_direction(targetDirection);
-                }
-
-                // Fix 2: Set the default direction globally so any newly navigated/built views inherit it
-                Gtk.Widget.setDefaultDirection(targetDirection);
-
-                // Force redraw
-                this.window.queueDraw();
-                this.window.queueResize();
-
-
-      
-
-          }
-
-
-          
-
-          this.refresh_all_translations();
-
-          // 2. FORCE the active page layout view dictionary to re-sync
-          if (typeof this.refresh_row_dictionaries === 'function') {
-              this.refresh_row_dictionaries();
-          }
-
-
-
-           console.log("Language successfully switched to:", next_lang);
-        } catch (error) {
-          console.error("Failed to dynamically switch language:", error);
-        }
-
-        count++
-
-        if(count > 3){
-          count = 1
-        }
-
-        console.log("lang btn:", count)
-           
-
-      })
-
-      headerBar.packStart(lang_btn)
+     
      
 
       // left_sidebar
@@ -1086,6 +1055,99 @@ class App extends Adw.Application {
               }
             }
 
+    }
+
+
+    langbtn(){
+       // switch-lang
+      /*const lang_btn = new Gtk.Button({label: "Language: EN"})
+      let count = 1
+      lang_btn.connect("clicked", async () => {
+        let btnLabel = "Language: EN";
+        let next_lang = "en"
+        switch(count){
+          case 1:
+            next_lang = "en"
+            btnLabel = "EN"
+          break
+           case 2:
+            next_lang = "de"
+             btnLabel = "DE"
+          break
+           case 3:
+            next_lang = "ar"
+             btnLabel = "AR"
+          break
+        }
+
+        try {
+          await i18next.changeLanguage(next_lang)
+          this.currentLang = next_lang
+          lang_btn.setLabel(btnLabel)
+
+
+          /*if(this.window){
+            if(next_lang === "ar"){ 
+              this.window.setDirection(Gtk.TextDirection.RTL)
+              this.window.queueDraw()
+               
+            }else {
+              this.window.setDirection(Gtk.TextDirection.LTR)
+              this.window.queueDraw()
+               
+            }*/
+/*
+              if (this.window) {
+                const targetDirection = (next_lang === "ar") ? Gtk.TextDirection.RTL : Gtk.TextDirection.LTR;
+                
+                // Fix 1: Try the standard snake_case binding method if camelCase failed
+                if (typeof (this.window as any).setDirection === 'function') {
+                    this.window.setDirection(targetDirection);
+                } else if (typeof (this.window as any).set_direction === 'function') {
+                    (this.window as any).set_direction(targetDirection);
+                }
+
+                // Fix 2: Set the default direction globally so any newly navigated/built views inherit it
+                Gtk.Widget.setDefaultDirection(targetDirection);
+
+                // Force redraw
+                this.window.queueDraw();
+                this.window.queueResize();
+
+
+      
+
+          }
+
+
+          
+
+          this.refresh_all_translations();
+
+          // 2. FORCE the active page layout view dictionary to re-sync
+          if (typeof this.refresh_row_dictionaries === 'function') {
+              this.refresh_row_dictionaries();
+          }
+
+
+
+           console.log("Language successfully switched to:", next_lang);
+        } catch (error) {
+          console.error("Failed to dynamically switch language:", error);
+        }
+
+        count++
+
+        if(count > 3){
+          count = 1
+        }
+
+        console.log("lang btn:", count)
+           
+
+      })*/
+
+      //headerBar.packStart(lang_btn)
     }
 
 
