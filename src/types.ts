@@ -2,6 +2,7 @@ import { UserRole } from "./enums.js"
 
 export type AUTH = {
    name?: string
+   role: UserRole
    email: string
    password: string
 }
