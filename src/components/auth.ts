@@ -120,6 +120,7 @@ export class AuthComponent extends Gtk.Stack{
 
           if(this.app && user) {
              this.app.logout_btn.setVisible(true)
+             this.app.role_lbl.setVisible(true)
             this.app.isAuth = true
             console.log("this.app user:", user, user.name, user?.role)
             this.app.active_user = user
