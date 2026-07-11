@@ -48,101 +48,7 @@ import { SettingsComponent } from './components/settings.js';
 process.argv = [process.argv[0]];
 
 
-const APP_ID = 'com.example.MNodeGtk'
-/*
-const loop = GLib.MainLoop.new(null, false)
-const app = new Adw.Application({ applicationId: APP_ID, flags: Gio.ApplicationFlags.FLAGS_NONE })
-
-app.on('activate', () => {
-  // Apply style.css, layered on top of Adwaita. Under `npm run dev` the file is
-  // re-read live as you edit it — no restart, no flash. style.css sits at the
-  // project root, one level up from both src/ (dev, via tsx) and dist/ (built,
-  // via node), so this URL resolves in either case.
-  styles.addFile(new URL('../style.css', import.meta.url))
-
-  const window = new Adw.ApplicationWindow({ application: app })
-  window.setTitle('M Node Gtk')
-  window.setDefaultSize(640, 520)
-
-  // ---- header bar with a primary menu ----------------------------------
-  const header = new Adw.HeaderBar()
-
-  const menu = new Gio.Menu()
-  menu.append('About M Node Gtk', 'app.about')
-  menu.append('Quit', 'app.quit')
-  menu.append('Info', 'app.info')
-
-  const menuButton = new Gtk.MenuButton({
-    iconName: 'open-menu-symbolic',
-    menuModel: menu,
-    primary: true,
-  })
-  header.packEnd(menuButton)
-
-  // ---- content: a welcome screen ---------------------------------------
-  // Adw.ToastOverlay lets us pop transient "toast" notifications.
-  const toast_overlay = new Adw.ToastOverlay({ vexpand: true })
-
-  // The welcome screen lives in its own module (src/welcome.ts) so its inline
-  // styles.add() CSS hot-reloads on its own — see that file.
-  toast_overlay.setChild(createWelcome(() => {
-    toast_overlay.addToast(new Adw.Toast({ title: 'Hello from M Node Gtk 👋' }))
-  }))
-
-  // Adw.ApplicationWindow has no built-in title bar, so we stack our own
-  // header above the content inside a vertical box.
-  const content = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL })
-  content.append(header)
-  content.append(toast_overlay)
-  window.setContent(content)
-
-  // ---- app actions (wired to the menu above) ---------------------------
-  const showAbout = () => {
-    // Adw.AboutWindow works on libadwaita 1.2+. On 1.5+ you can switch to
-    // Adw.AboutDialog (a Gtk.Window-free dialog) if you prefer.
-    const about = new Adw.AboutWindow({
-      transientFor: window,
-      applicationName: 'M Node Gtk',
-      applicationIcon: APP_ID,
-      developerName: 'Your Name',
-      version: '0.1.0',
-      comments: 'An Adwaita application built with node-gtk.',
-      developers: ['Your Name <you@example.com>'],
-      copyright: '© 2026 Your Name',
-      licenseType: Gtk.License.MIT_X11,
-    })
-    about.present()
-  }
-
-  const aboutAction = Gio.SimpleAction.new('about', null)
-  aboutAction.on('activate', () => showAbout())
-  app.addAction(aboutAction)
-
-  const infoAction = Gio.SimpleAction.new('info', null)
-  infoAction.on('activate', () => {
-    console.log('infoAction...')
-  })
-  app.addAction(infoAction)
-  app.setAccelsForAction('app.info', ['<Control>i'])
-
-  const quitAction = Gio.SimpleAction.new('quit', null)
-  quitAction.on('activate', () => { loop.quit(); app.quit() })
-  app.addAction(quitAction)
-  app.setAccelsForAction('app.quit', ['<Control>q'])
-
-  window.on('close-request', () => (loop.quit(), app.quit(), false))
-
-  styles.install() // flush queued styles and start the dev hot-reload watcher
-  window.present()
-
-  // The loop integration is already running; under ESM this returns immediately.
-  // The app keeps running until the close handler (or quit action) stops it.
-  loop.run()
-})
-
-// Must be the last statement — returns immediately under ESM (see top of file).
-//app.run([])
-*/
+export const APP_ID = 'com.example.M-Node-Gtk'
 
 
 
@@ -276,8 +182,11 @@ class App extends Adw.Application {
         });
 
         // Establish our global micro-shorthand helper macro
-        (globalThis as any)._ = (key: string) => i18next.t(key);
-        this._ = (key: string) => i18next.t(key)
+        //(globalThis as any)._ = (key: string) => i18next.t(key);
+        
+        //this._ = (key: string) => i18next.t(key)
+        (globalThis as any)._ = (key: string, options?: any) => i18next.t(key, options);
+        this._ = (key: string, options?: any) => i18next.t(key, options);
     }
 
 
@@ -340,19 +249,19 @@ class App extends Adw.Application {
           });
       }
 
-     register_widget(widget: any, prop: any, key: any){
+     register_widget(widget: any, prop: any, key: any, i18n_param?: any){
        /*this.registered_widgets.forEach(({ widget, prop, key }) => {
         this.update_widget_text(widget, prop, key);
        }); */
        this.registered_widgets.push({widget, prop, key})
 
-       this.update_widget_text(widget, prop, key);
+       this.update_widget_text(widget, prop, key, i18n_param);
     }
 
-    update_widget_text(widget: any, prop: any, key: any){
+    update_widget_text(widget: any, prop: any, key: any, i18n_param?: any){
         if (!widget) return;
     
-        const translated_text = this._(key);
+        let translated_text = this._(key, i18n_param);
 
         switch(prop) {
             case "label":
@@ -529,6 +438,8 @@ class App extends Adw.Application {
 
       // left_sidebar
       this.left_sidebar = new LeftSidebar(this)
+      this.left_sidebar.setSizeRequest(350, -1) 
+      
       // right_sidebar
       this.right_sidebar = new RightSidebar();
 
@@ -537,8 +448,9 @@ class App extends Adw.Application {
       // 1.view-stack
         this.view_stack = new Adw.ViewStack({
           vexpand: true,
-          marginStart: 8,
-          marginEnd: 8
+          marginStart: 0,
+          marginEnd: 0,
+          //cssClasses: ["view_stack"]
         })
         
 
@@ -573,7 +485,7 @@ class App extends Adw.Application {
 
       // settings tab
       // 2.tab-box
-      const tab_box_2 = new TabBoxComponent(this, "Settings", "settings", "user-home-symbolic")
+      const tab_box_2 = new TabBoxComponent(this, "Settings", "settings", "preferences-system-symbolic")
       // 3.listbox
       const list_box_2 = new Gtk.ListBox()
       list_box_2.addCssClass("boxed-list")
@@ -595,7 +507,8 @@ class App extends Adw.Application {
 
        // profile-tab  
       // 2.tab-box
-      const tab_box_3 = new TabBoxComponent(this, "Profile", "profile", "user-home-symbolic")
+      const tab_box_3 = new TabBoxComponent(this, "Profile", "profile", "avatar-default-symbolic")
+      //tab_box_3.addCssClass("view_stack")
       /*const tab_box_3 = new Gtk.Box({
         orientation: Gtk.Orientation.VERTICAL,
         spacing: 6,
@@ -645,9 +558,11 @@ class App extends Adw.Application {
       */
      // view_switcher
      const view_switcher = new Adw.ViewSwitcher({
-      marginTop: 6,
-      marginStart: 2,
-      marginEnd: 2,
+      marginTop: 50,
+      marginEnd: 0,
+      marginStart: 0,
+      cssClasses: ["view_stack"],
+      
       policy: Adw.ViewSwitcherPolicy.WIDE,
       //cssClasses: ["custom-view-switcher-bg"],
       stack: this.view_stack,

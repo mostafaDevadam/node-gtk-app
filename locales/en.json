@@ -14,6 +14,14 @@
     "keyboard": "Keyboard",
     "profile_info": "Info.",
     "profile_address": "Address",
-
-  "copied": "Copied"
+    "copied": "Copied",
+    "information": "Information",
+    "name": "Name",
+    "email": "Email",
+    "street": "Street",
+    "city": "City",
+    "enable": "Enable",
+    "dark-mode": "Dark-Mode",
+    "keyboard-layout": "Keyboard Layout",
+    "visual_blueprint_preview": "Visual Blueprint Preview: {{name}}"
 }

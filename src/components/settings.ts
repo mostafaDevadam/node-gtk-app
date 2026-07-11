@@ -29,18 +29,22 @@ export class SettingsComponent {
         })
         box.setSizeRequest(240, -1)
         const lbl = new Gtk.Label({label: "Account#"})
-        box.append(lbl)
+        //box.append(lbl)
 
         const group = new Adw.PreferencesGroup()
+        //group.setTitle("Account")
+        this.app.register_widget(group, "title", "account")
         //self.register_widget(group, "title", "setting_general_item")
         box.append(group)
 
 
         const name_row = new Adw.ActionRow({title:"Name", subtitle: this.app.active_user.name ?? "test-name"})
+        this.app.register_widget(name_row, "title", "name")
         //name_row.addSuffix(this.app.build_copy_btn(this.app.active_user.name))
         group.add(name_row)
 
          const email_row = new Adw.ActionRow({title:"Email", subtitle: this.app.active_user.email ?? "test email"})
+         this.app.register_widget(email_row, "title", "email")
         //name_row.addSuffix(this.app.build_copy_btn(this.app.active_user.email))
         group.add(email_row)
 
@@ -48,7 +52,7 @@ export class SettingsComponent {
 
         
        
-        this.app.template_view.build_template_view("Account","settings_account_view", box)
+        this.app.template_view.build_template_view("Settings","settings_account_view", box)
 
   }
 
@@ -64,15 +68,17 @@ export class SettingsComponent {
 
 
         box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "Notifications#"})
-        box.append(lbl)
+        //const lbl = new Gtk.Label({label: "Notifications#"})
+        //box.append(lbl)
 
         const group = new Adw.PreferencesGroup()
-        group.setTitle("Notifications")
+        //group.setTitle("Notifications")
+        this.app.register_widget(group, "title", "notifications")
         //this.app.register_widget(group, "title", "setting_general_item")
         
         const animation_row = new Adw.SwitchRow()
-        animation_row.setTitle("Enable")
+        //animation_row.setTitle("Enable")
+        this.app.register_widget(animation_row, "title", "enable")
         //this.app.register_widget(animation_row, "title", "animations")
         group.add(animation_row)
         box.append(group)
@@ -81,7 +87,7 @@ export class SettingsComponent {
 
         
        
-        this.app.template_view.build_template_view("Notifications","settings_notifications_view", box)
+        this.app.template_view.build_template_view("Settings","settings_notifications_view", box)
 
   }
 
@@ -97,16 +103,18 @@ export class SettingsComponent {
         
         })
         box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "Display#"})
-        box.append(lbl)
+        //const lbl = new Gtk.Label({label: "Display#"})
+        //box.append(lbl)
 
 
         const group = new Adw.PreferencesGroup()
-        group.setTitle("Display")
+        //group.setTitle("Display")
+        this.app.register_widget(group, "title", "display")
         //this.app.register_widget(group, "title", "setting_general_item")
         
         const dark_mode_row = new Adw.SwitchRow()
-        dark_mode_row.setTitle("Dark Mode")
+        //dark_mode_row.setTitle("Dark Mode")
+        this.app.register_widget(dark_mode_row, "title", "dark-mode")
         dark_mode_row.connect("notify::active", () => {
           console.log("dark_mode_row")
           const isDarkMode = dark_mode_row.active;
@@ -140,7 +148,7 @@ export class SettingsComponent {
 
         
        
-        this.app.template_view.build_template_view("Display","settings_display_view", box)
+        this.app.template_view.build_template_view("Settings","settings_display_view", box)
 
   }
 
@@ -156,13 +164,14 @@ export class SettingsComponent {
         
         })
         box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "Keyboard#"})
-        box.append(lbl)
+        //const lbl = new Gtk.Label({label: "Keyboard#"})
+        //box.append(lbl)
 
         this.app.clear_right_sidebar()
 
         const group = new Adw.PreferencesGroup()
-        group.setTitle("Display")
+        //group.setTitle("Keyboard")
+        this.app.register_widget(group, "title", "keyboard")
         box.append(group)
 
         this.sidebar_image_container = new Gtk.Box({
@@ -180,6 +189,7 @@ export class SettingsComponent {
         const k_layout_row = new Adw.ComboRow({
           title: "Keyboard Layout"
         })
+        this.app.register_widget(k_layout_row, "title", "keyboard-layout")
         //self.register_widget(k_layout_row, "title", "layout_title")
         const k_model = Gtk.StringList.new(this.keyboard_options)
         k_layout_row.setModel(k_model)
@@ -201,7 +211,7 @@ export class SettingsComponent {
 
         
        
-        this.app.template_view.build_template_view("Keyboard","settings_keyboard_view", box)
+        this.app.template_view.build_template_view("Settings","settings_keyboard_view", box)
 
   }
 
@@ -234,6 +244,10 @@ export class SettingsComponent {
         
     const chosen_name = this.keyboard_options[selectedIndex]
     info_lbl.setText(`Visual Blueprint Preview: ${chosen_name}`)
+    //const translated_text = this._("visual_blueprint_preview", { name: chosen_name });
+    this.app.register_widget(info_lbl, "label", "visual_blueprint_preview", { name: chosen_name })
+    //info_lbl.setText(this.app._("visual_blueprint_preview", { name: chosen_name }))
+    
     this.sidebar_image_container.append(info_lbl)
 
     if (fs.existsSync(image_path)){
@@ -248,47 +262,7 @@ export class SettingsComponent {
     }
 
 
-    /*
-        image_files = {
-            0: "en.png",
-            1: "ar.png",
-            2: "de.png"
-        }
-        #
-        file_name = image_files.get(selected_index, "en.png")
-        #
-        image_path = os.path.join(GLib.get_current_dir(), "assets", file_name)
-        #
-        info_lbl = Gtk.Label()
-        info_lbl.add_css_class("caption")
-        info_lbl.set_margin_bottom(8)
-        #
-        chosen_name = self.keyboard_options[selected_index]
-        info_lbl.set_text(f"Visual Blueprint Preview: {chosen_name}")
-        self.sidebar_image_container.append(info_lbl)
-        #
-        print(f"image path: {image_path}")
-        #
-        
-        
-        #
-        if os.path.exists(image_path):
-            #keyboard_image = Gtk.Image.new_from_file(image_path)
-            keyboard_image = Gtk.Picture.new_for_filename(image_path)
-            #
-            #keyboard_image.set_hexpand(True)
-            #keyboard_image.set_vexpand(True)
-            #
-            
-            self.sidebar_image_container.append(keyboard_image)
-            #self.sidebar_image_container.append(Gtk.Image.new_from_file(os.path.join(GLib.get_current_dir(), "assets", "en.png")))
-        else:
-            return False
-        #
-        self.right_sidebar.queue_allocate()
-    
-    
-    */
+   
 
 
 

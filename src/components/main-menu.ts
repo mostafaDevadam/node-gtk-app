@@ -1,6 +1,6 @@
 import {Adw, GLib, Gio, Gtk} from '../index.js'
+import { APP_ID } from '../main.js'
 
-const APP_ID = 'com.example.MNodeGtk'
 
 
 export class MainMenu {
@@ -18,7 +18,7 @@ export class MainMenu {
     this.window = window
 
       this.menu = new Gio.Menu()
-      this.menu.append('About M Node Gtk', 'app.about')
+      this.menu.append('About', 'app.about')
       this.menu.append('Quit', 'app.quit')
       this.menu.append('Info', 'app.info')
 

@@ -14,6 +14,14 @@
     "keyboard": "Tastatur",
     "profile_info": "Info",
     "profile_address": "Adresse",
-
-  "copied": "Kopiert"
+    "copied": "Kopiert",
+    "information": "Information",
+    "name": "Name",
+    "email": "E-Mail",
+    "street": "Straße",
+    "city": "Stadt",
+    "enable": "Aktivieren",
+    "dark-mode": "Dunkelmodus",
+     "keyboard-layout": "Keyboard Layout",
+     "visual_blueprint_preview": "Visuelle Entwurfsvorschau: {{name}}"
 }

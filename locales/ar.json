@@ -13,5 +13,14 @@
     "keyboard": "لوحة المفاتيح",
     "profile_info": "معلومات",
     "profile_address": "العنوان",
-   "copied": "نسخ"
+    "copied": "نسخ",
+    "information": "معلومات",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "street": "الشارع",
+    "city": "المدينة",
+    "enable": "تفعيل",
+    "dark-mode": "الوضع الداكن",
+    "keyboard-layout": "تخطيط لوحة المفاتيح",
+    "visual_blueprint_preview": "معاينة المخطط المرئي: {{name}}"
 }

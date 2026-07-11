@@ -12,11 +12,26 @@ export class TabBoxComponent extends Gtk.Box {
         orientation: Gtk.Orientation.VERTICAL,
         spacing: 6,
         marginTop: 12,
+        //cssClasses: ["view_stack"]
     })
     this.app = app
-     const page_wrapper = this.app.view_stack.addTitled(this, wrapper_title, app._(key))
-     this.app.register_widget(page_wrapper, "title", key);
-     page_wrapper.setIconName(icon_name)
+    console.log("tabbox key:", key)
+     //const page_wrapper = this.app.view_stack.addTitled(this, wrapper_title, app._(key))
+     //page_wrapper.setIconName(icon_name)
+
+     const lbl = new Gtk.Label({label: "test"})
+
+     let vsp = new Adw.ViewStackPage()
+     vsp = this.app.view_stack.addTitled(this, wrapper_title, "...")
+      vsp.setIconName(icon_name)
+      
+     
+      
+     
+       this.app.register_widget(vsp, "title", key);
+     
+    
+     
 
   }
 
@@ -25,9 +40,7 @@ export class TabBoxComponent extends Gtk.Box {
 
      for(const item of items){
 
-        const row = new Adw.ActionRow({
-         
-        })
+        const row = new Adw.ActionRow()
         //row.setTitle(item.label ?? item.key)   
         
         this.app.register_widget(row, "title", item.key);

@@ -17,3 +17,9 @@ button.suggested-action.pill {
   padding-left: 24px;
   padding-right: 24px;
 }
+
+.view_stack{
+  /*background-color: brown;
+  color: #fff;*/
+  font-size: small;
+}
