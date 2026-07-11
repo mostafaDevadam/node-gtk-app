@@ -1,11 +1,18 @@
+import { UserRole } from '../../enums.js'
 import {Adw, GLib, Gio, Gtk} from '../../index.js'
 import { AUTH } from '../../types.js'
 
+
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+
 export class AuthForm extends Gtk.Box {
 
-    validation_name: any
-    validation_email: any
-    validation_password: any
+    validation_name = new Gtk.Label({label: "Name is required"})
+    validation_email = new Gtk.Label({label: "Email is required"})
+    validation_password = new Gtk.Label({label: "Password is required"})
+    validation_role = new Gtk.Label({label: "Role is required"})
+    isValidRole = false
     isValidName = false
     isValidEmail = false
     isValidPass = false
@@ -17,6 +24,8 @@ export class AuthForm extends Gtk.Box {
 
     role_row: any
     role_model: any
+
+    current_role: UserRole = UserRole.employee
 
 
     constructor(app: any,title: string, isRegister: boolean, submit_event: (data: AUTH) => void){
@@ -33,6 +42,8 @@ export class AuthForm extends Gtk.Box {
         this.role_row = new Adw.ComboRow()
 
         this.app.refresh_role_row(this.role_model, this.role_row);
+
+       
         
         
 
@@ -68,6 +79,9 @@ export class AuthForm extends Gtk.Box {
                   if (selected_index === 4294967295 || selected_index < 0 ){
                       return
                   }
+
+                  //const chosen_role = this.role_items[selected_index]
+                  //this.current_role = chosen_role as UserRole
                  
                   this.updated_selected_role(selected_index)       
         })
@@ -77,6 +91,9 @@ export class AuthForm extends Gtk.Box {
         const group = new Adw.PreferencesGroup()
         group.add(this.role_row)
         this.append(group)
+
+        this.validation_role.setVisible(false)
+        this.append(this.validation_role)
 
         //this.refresh_role_dropdown();
 
@@ -99,7 +116,7 @@ export class AuthForm extends Gtk.Box {
         if(this.isRegister){
             this.append(input_name)
              // validation email
-            this.validation_name = new Gtk.Label({label: "Name is required"})
+            //this.validation_name = new Gtk.Label({label: "Name is required"})
             this.validation_name.setVisible(false)
             this.append(this.validation_name)
         }
@@ -116,7 +133,7 @@ export class AuthForm extends Gtk.Box {
 
         this.append(input_email)
         // validation email
-         this.validation_email = new Gtk.Label({label: "Email is required"})
+         //this.validation_email = new Gtk.Label({label: "Email is required"})
          this.validation_email.setVisible(false)
         this.append(this.validation_email)
 
@@ -131,7 +148,7 @@ export class AuthForm extends Gtk.Box {
         input_password.connect("notify::text", () => this.on_password_changed(input_password))
         this.append(input_password)
         // validation email
-        this.validation_password = new Gtk.Label({label: "Password is required"})
+        //this.validation_password = new Gtk.Label({label: "Password is required"})
         this.validation_password.setVisible(false)
         this.append(this.validation_password)
 
@@ -144,27 +161,41 @@ export class AuthForm extends Gtk.Box {
         btn.on("clicked", () => {
             console.log("clicked!!!")
 
+            if(!this.isValidRole){
+                this.validation_role.setVisible(true)
+                return
+            }
+
             if(this.isRegister && !this.isValidName) {
                 this.validation_name.setVisible(true)
+                return
             }
             
             if(!this.isValidEmail){
                 this.validation_email.setVisible(true)
+                return 
                 
             }
             if(!this.isValidPass){
                 this.validation_password.setVisible(true)
                 this.validation_password.setText("password is invalid!")
-                return
             }
-            console.log(`email: ${input_email.text} , password: ${input_password.text}`)
+
+            if(!this.isValidRole || (this.isRegister && !this.isValidName )|| !this.isValidEmail || !this.isValidPass){
+                return 
+            }
+
+
+            console.log(`email: ${input_email.text} , password: ${input_password.text}, role: ${this.current_role}`)
 
             
             submit_event(!isRegister ? {
+                role: this.current_role,
                 email: input_email.text, 
                 password: input_password.text
                 } : 
                 {
+                role: this.current_role,
                 name: input_name.text,
                 email: input_email.text, 
                 password: input_password.text
@@ -209,6 +240,18 @@ export class AuthForm extends Gtk.Box {
 
         const chosen_role = this.role_items[selectedIndex]
 
+        if(!chosen_role){
+            this.isValidRole = false
+            this.validation_role.setVisible(true)
+            
+            return
+        }
+        this.validation_role.setVisible(false)
+        this.isValidRole = true
+        this.current_role = chosen_role as UserRole
+
+
+
         console.log("updated_selected_role chosen_role:", chosen_role)
 
         //this.refresh_role_dropdown()
@@ -217,6 +260,8 @@ export class AuthForm extends Gtk.Box {
         //this.role_model.append(translatedString);
 
         console.log("updated_selected_role translatedString:", translatedString)
+
+        
 
        
 
@@ -230,6 +275,7 @@ export class AuthForm extends Gtk.Box {
 
 
      on_name_changed(entry: any){
+        
         //console.log("input email changed:", entry)
         //const text = entry.text
         const currentText = entry.text
@@ -238,7 +284,11 @@ export class AuthForm extends Gtk.Box {
         if(currentText.length == 0){
            this.validation_name.setVisible(true)
            this.isValidName = false
-        } //else if (currentText.length <= 3)
+        } else  if(currentText.length < 3){
+            this.validation_name.setText("Name is too short!")
+           this.validation_name.setVisible(true)
+           this.isValidName = false
+        }
         else {
              this.validation_name.setVisible(false)
              this.isValidName = true
@@ -256,7 +306,12 @@ export class AuthForm extends Gtk.Box {
         if(currentText.length == 0){
            this.validation_email.setVisible(true)
            this.isValidEmail = false
-        } //else if (currentText.length <= )
+        } else if (!emailRegex.test(currentText)){
+            this.validation_email.setText("Invalid Email!")
+             this.validation_email.setVisible(true)
+             this.isValidEmail = false
+
+        }
         else {
              this.validation_email.setVisible(false)
              this.isValidEmail = true
@@ -272,12 +327,12 @@ export class AuthForm extends Gtk.Box {
            this.validation_password.setVisible(true)
            this.isValidPass = false
         }
-        else if (currentText.length <= 3) {
-            this.validation_password.setText("password is too short!")
+        else if (currentText.length < 6) {
+            this.validation_password.setText("password is too short and password should be at least 6 characters!")
             this.validation_password.setVisible(true)
             this.isValidPass = false
         }
-        else if (currentText.length > 3) {
+        else if (currentText.length >= 6) {
             //this.validation_password.setText("password is too short!")
             this.validation_password.setVisible(false)
             this.isValidPass = true
