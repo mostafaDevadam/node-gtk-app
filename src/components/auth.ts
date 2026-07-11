@@ -33,6 +33,8 @@ export class AuthComponent extends Gtk.Stack{
             this.submit_login(data)
         })
 
+        this.app.refresh_role_row(login_box.role_model, login_box.role_row)
+
         //login_box.append(new Gtk.Label({ label: 'test-login!' }));
         this.addNamed(login_box, "login_layout")
         this.app.root_navigation_stack.setVisibleChildName("auth_layout")

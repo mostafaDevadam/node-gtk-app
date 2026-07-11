@@ -22,5 +22,8 @@
     "enable": "تفعيل",
     "dark-mode": "الوضع الداكن",
     "keyboard-layout": "تخطيط لوحة المفاتيح",
-    "visual_blueprint_preview": "معاينة المخطط المرئي: {{name}}"
+    "visual_blueprint_preview": "معاينة المخطط المرئي: {{name}}",
+    "role": "الدور",
+    "admin": "مسؤول",
+    "employee": "موظف"
 }

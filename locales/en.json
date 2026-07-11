@@ -23,5 +23,8 @@
     "enable": "Enable",
     "dark-mode": "Dark-Mode",
     "keyboard-layout": "Keyboard Layout",
-    "visual_blueprint_preview": "Visual Blueprint Preview: {{name}}"
+    "visual_blueprint_preview": "Visual Blueprint Preview: {{name}}",
+    "role": "Role",
+    "admin": "Admin",
+    "employee": "Employee"
 }

@@ -22,6 +22,9 @@
     "city": "Stadt",
     "enable": "Aktivieren",
     "dark-mode": "Dunkelmodus",
-     "keyboard-layout": "Keyboard Layout",
-     "visual_blueprint_preview": "Visuelle Entwurfsvorschau: {{name}}"
+    "keyboard-layout": "Keyboard Layout",
+    "visual_blueprint_preview": "Visuelle Entwurfsvorschau: {{name}}",
+    "role": "Rolle",
+    "admin": "Administrator",
+    "employee": "Mitarbeiter"
 }

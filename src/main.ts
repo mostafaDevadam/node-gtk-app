@@ -243,6 +243,44 @@ class App extends Adw.Application {
                             row_widget.set_title(self.i18n._(key))*/
      }
 
+     public refresh_role_row(role_model: any,role_row: any) {
+      
+         if (!role_model || !role_row) return role_row;
+
+         console.log("refresh_role_row")
+
+        // 1. Save the user's current selection index
+        const selectedIndex = role_row.getSelected();
+
+        // 2. Temporarily disconnect the model from the row widget.
+        // This stops GTK from freezing or misbehaving while we alter the underlying data.
+        role_row.setModel(null);
+
+        // 3. Clear out ALL existing strings element-by-element to force memory cleanup
+        let total = role_model.getNItems();
+        while (total > 0) {
+            // Remove the item at position 0 until the list is entirely empty
+            role_model.splice(0, 1, null);
+            total = role_model.getNItems();
+        }
+        
+        // 4. Append the fresh, newly translated target strings
+        role_model.append(this._("admin"));
+        role_model.append(this._("employee"));
+        
+        // 5. Re-bind the updated string list model back to the row widget
+        role_row.setModel(role_model);
+
+        // 6. Restore the user's selection index position seamlessly
+        if (selectedIndex !== 4294967295 && selectedIndex < role_model.getNItems()) {
+            role_row.setSelected(selectedIndex);
+        } else {
+            role_row.setSelected(0); // Fallback to safe first element default
+        }
+
+        return role_row;
+      }
+
      public refresh_all_translations() {
           this.registered_widgets.forEach(({ widget, prop, key }) => {
               this.update_widget_text(widget, prop, key);

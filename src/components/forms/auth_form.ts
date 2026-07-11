@@ -11,6 +11,14 @@ export class AuthForm extends Gtk.Box {
     isValidPass = false
     isRegister = false
 
+    role_items = ["admin", "employee"]
+
+    app: any
+
+    role_row: any
+    role_model: any
+
+
     constructor(app: any,title: string, isRegister: boolean, submit_event: (data: AUTH) => void){
         super({
              orientation: Gtk.Orientation.VERTICAL,
@@ -20,6 +28,13 @@ export class AuthForm extends Gtk.Box {
             marginStart: 24,
             marginEnd: 24,
         })
+        this.app = app
+        this.role_model = new Gtk.StringList()
+        this.role_row = new Adw.ComboRow()
+
+        this.app.refresh_role_row(this.role_model, this.role_row);
+        
+        
 
 
         
@@ -28,6 +43,50 @@ export class AuthForm extends Gtk.Box {
         this.append(new Gtk.Label({ label: title }));
 
         this.isRegister = isRegister
+
+
+        // role
+       
+
+        this.role_row = new Adw.ComboRow({
+          title: "Role"
+        })
+
+        //this.app.register_widget(role_row, "title", "role")
+        
+        this.role_model = new Gtk.StringList()
+
+        //this.role_row.setModel(this.role_model)
+
+         this.app.register_widget(this.role_row, "title", "role");
+
+         this.role_row = this.app.refresh_role_row(this.role_model, this.role_row);
+        
+        this.role_row.connect("notify::selected", (combo_row: any) => {
+                  const selected_index = this.role_row.getSelected()
+                  console.log("selected_index:", selected_index)
+                  if (selected_index === 4294967295 || selected_index < 0 ){
+                      return
+                  }
+                 
+                  this.updated_selected_role(selected_index)       
+        })
+        //this.append(role_row)
+        this.updated_selected_role(this.role_row.getSelected())
+
+        const group = new Adw.PreferencesGroup()
+        group.add(this.role_row)
+        this.append(group)
+
+        //this.refresh_role_dropdown();
+
+
+
+       
+
+
+
+
 
        
         // name
@@ -113,6 +172,60 @@ export class AuthForm extends Gtk.Box {
         })
 
         this.append(btn)
+    }
+
+    refresh_role_dropdown() {
+            if (!this.role_model || !this.role_row ) return;
+
+            // Save current selection index so the user doesn't lose their place
+            const currentIndex = this.role_row?.getSelected();
+
+            console.log("refresh_role_dropdown currentIndex:", currentIndex)
+
+            // Clear the native list by splicing out all items
+            // (In node-gtk, you pass the position and number of items to remove)
+            const totalItems = this.role_model?.getNItems();
+            if (totalItems > 0) {
+                this.role_model.splice(0, totalItems, null);
+            }
+
+            // Append the freshly translated text strings
+            this.role_items.forEach((key) => {
+                const translatedString = this.app._(key); // e.g., "Mitarbeiter" or "موظف"
+                console.log("translatedString:", translatedString)
+                this.role_model.append(translatedString);
+            });
+
+            
+
+            // Restore their original selected index location
+            if (currentIndex !== 4294967295) {
+                this.role_row.setSelected(currentIndex);
+            }
+        }
+
+
+    updated_selected_role(selectedIndex: number){
+
+        const chosen_role = this.role_items[selectedIndex]
+
+        console.log("updated_selected_role chosen_role:", chosen_role)
+
+        //this.refresh_role_dropdown()
+        const translatedString = this.app._(chosen_role.toLocaleLowerCase()); // e.g., "Mitarbeiter" or "موظف"
+        //this.role_items[selectedIndex] = translatedString
+        //this.role_model.append(translatedString);
+
+        console.log("updated_selected_role translatedString:", translatedString)
+
+       
+
+        
+
+
+        //console.log("translatedString:", translatedString)
+        //this.role_model.append(translatedString);
+
     }
 
 
