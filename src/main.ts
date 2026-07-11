@@ -45,41 +45,18 @@ import { BusesComponent } from './components/buses.js';
 import { HistoryComponent } from './components/history.js';
 import { AuditLogsComponent } from './components/auditlogs.js';
 import { SettingsComponent } from './components/settings.js';
-process.argv = [process.argv[0]];
-
-
-export const APP_ID = 'com.example.M-Node-Gtk'
-
-
-
-
+import { MenuLanguagesComponent } from './components/menu_lang.js';
 import i18next from 'i18next';
 // Using standard node imports for your local translation JSON files
 import enTranslation from '../locales/en.json' with { type: 'json' };
 import esTranslation from '../locales/es.json' with { type: 'json' };
 import deTranslation from '../locales/de.json' with { type: 'json' };
 import arTranslation from '../locales/ar.json' with { type: 'json' };
-import { MenuLanguagesComponent } from './components/menu_lang.js';
 
-// Simple helper to check the Linux system language environment variable (e.g., "en_US.UTF-8" -> "en")
-const systemLang = (process.env.LANG || 'en').split('_')[0].split('.')[0];
+export const APP_ID = 'com.example.M-Node-Gtk'
 
-async function initI18n() {
-    await i18next.init({
-        lng: systemLang,       // Use the detected OS language
-        fallbackLng: 'en',     // Default to English if system lang isn't supported yet
-        resources: {
-            en: { translation: enTranslation },
-            es: { translation: esTranslation }
-        }
-    });
+process.argv = [process.argv[0]];
 
-    // Make the standard global _() translation macro shortcut accessible anywhere in your code
-    (globalThis as any)._ = (key: string) => i18next.t(key);
-}
-
-// Call this before building your GTK Windows!
-//await initI18n();
 
 
 
@@ -100,6 +77,8 @@ class App extends Adw.Application {
     right_sidebar: any
     center_stack: any
 
+    logout_btn: any
+
     view_stack: any
 
     active_user: USER = {}
@@ -116,6 +95,8 @@ class App extends Adw.Application {
     history_comp: HistoryComponent
     audit_logs_comp: AuditLogsComponent 
     settings_comp: SettingsComponent
+
+    isAuth = false
 
     private registered_widgets: Array<{ widget: any, prop: string, key: string }> = [];
 
@@ -136,6 +117,8 @@ class App extends Adw.Application {
       this.history_comp = new HistoryComponent(this)
       this.audit_logs_comp = new AuditLogsComponent(this)
       this.settings_comp = new SettingsComponent(this)
+
+     
 
 
 
@@ -393,6 +376,8 @@ class App extends Adw.Application {
     private do_activate(): void{
       //
       styles.addFile(new URL('../style.css', import.meta.url))
+      this.toastOverlay = new Adw.ToastOverlay({ vexpand: true})
+
 
       //
      /* const curr_direction = Gtk.Widget.getDefaultDirection()
@@ -406,6 +391,7 @@ class App extends Adw.Application {
       }*/
       //
       this.toastOverlay = new Adw.ToastOverlay({ vexpand: true })
+      //this.toastOverlay.addToast(Adw.Toast.new("Cannot login!"))
 
      // 1. Create your header bar and content box
     const headerBar = new Adw.HeaderBar();
@@ -464,6 +450,40 @@ class App extends Adw.Application {
 
       //this.mainMenuActions()
       //headerBar.packEnd(this.mainMenu())
+
+      // logout-btn
+      this.logout_btn = new Gtk.Button({label: "Logout"})
+      this.logout_btn.setVisible(false)
+
+      /*if(!this.isAuth){
+        this.logout_btn.setVisible(false)
+      }{
+        this.logout_btn.setVisible(true)
+      }*/
+
+      this.logout_btn.connect("clicked", async () => {
+
+         // remove all json files außer users.json
+         const removedConfig = await StorageService.removeJsonFile("storage", "config")
+         const removedSettings = await StorageService.removeJsonFile("storage", "settings")
+         
+
+         if(removedConfig && removedSettings) {
+            this.auth_nav_stack.setVisible(true)
+            this.outer_split_view.setVisible(false)
+            this.auth_nav_stack.setVisibleChildName("login_layout")
+            this.root_navigation_stack.setVisibleChildName("auth_layout")
+            this.showToast("logout is success!")
+            this.logout_btn.setVisible(false)
+         }else {
+          this.showToast("logout is failed!")
+          this.logout_btn.setVisible(true)
+         }
+      })
+
+      headerBar.packStart(this.logout_btn)
+
+      // main-menu
       const menu = new MainMenu(this, this, this.window)
       menu.set_header(headerBar)
 
@@ -667,7 +687,7 @@ class App extends Adw.Application {
      this.check_auto_login()
 
         // test in center_stack
-         const test_center_box = new Gtk.Box({
+         /*const test_center_box = new Gtk.Box({
           orientation: Gtk.Orientation.VERTICAL,
           spacing: 12,
           marginTop: 24,
@@ -686,8 +706,8 @@ class App extends Adw.Application {
 
         })
 
-        test_center_box.append(test_logout_btn)
-        this.center_stack.addNamed(test_center_box, "test_center_box")
+        //test_center_box.append(test_logout_btn)
+        //this.center_stack.addNamed(test_center_box, "test_center_box")
 
         test_logout_btn.on("clicked", async () => {
           console.log("test-btn...1")
@@ -704,7 +724,7 @@ class App extends Adw.Application {
 
          
          
-        })
+        })*/
 
         
 
@@ -845,6 +865,7 @@ class App extends Adw.Application {
             console.log("no config for auto-login")
             this.auth_nav_stack.setVisible(true)
             this.outer_split_view.setVisible(false)
+            this.logout_btn.setVisible(false)
             
             this.root_navigation_stack.setVisibleChildName("auth_layout")
             this.auth_nav_stack.setVisibleChildName("login_layout")
@@ -864,10 +885,14 @@ class App extends Adw.Application {
             this.outer_split_view.setVisible(false)
             this.root_navigation_stack.setVisibleChildName("auth_layout")
             this.auth_nav_stack.setVisibleChildName("login_layout")
+            this.logout_btn.setVisible(false)
+            this.isAuth = false
             return
           }
 
           console.log("check_auto_login user:", user)
+
+          this.logout_btn.setVisible(true)
 
           const settings = await StorageService.readFromJsonAsObject("storage", "settings") as {is_dark_mode: boolean, saved_email: string}
 
@@ -887,6 +912,9 @@ class App extends Adw.Application {
           if(this.left_sidebar){
               this.left_sidebar.updateLeftLabel(user.name)
           }
+
+          this.isAuth = true
+
           this.outer_split_view.setVisible(true)
           this.root_navigation_stack.setVisibleChildName("main_layout")
 
@@ -1104,6 +1132,11 @@ class App extends Adw.Application {
     }
 
 
+    showToast(msg: string){
+      const toast = Adw.Toast.new(msg)
+      toast.setTimeout(3)
+      this.toastOverlay.addToast(toast)
+    }
     
 
 }

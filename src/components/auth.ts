@@ -9,9 +9,6 @@ import { StorageService } from '../services/storage.service.js'
 import { UserService } from '../services/user.service.js'
 import { AuthInstance, AuthService } from '../services/auth.service.js'
 
-
-
-
 export class AuthComponent extends Gtk.Stack{
 
     app: any
@@ -29,7 +26,7 @@ export class AuthComponent extends Gtk.Stack{
 
 
         // test login box
-        const login_box = new AuthForm(app, "Login", false, (data: any) => {
+        const login_box = new AuthForm(app, "Login", false, (data: AUTH) => {
             this.submit_login(data)
         })
 
@@ -60,12 +57,27 @@ export class AuthComponent extends Gtk.Stack{
 
 
         // test register box
-         const register_box = new AuthForm(app, "Register", true,(data: any) => {
+         const register_box = new AuthForm(app, "Register", true,(data: AUTH) => {
             this.submit_register(data)
         })
         this.addNamed(register_box, "register_layout")
         this.app.root_navigation_stack.setVisibleChildName("main_layout")
         this.app.outer_split_view.setVisible(false)
+
+
+         const to_login_btn = new Gtk.Button({
+          label: "to login",
+
+        })
+
+        to_login_btn.on("clicked", () => {
+          console.log("to_login_btn...1")
+          this.app.outer_split_view.setVisible(false)
+          this.setVisibleChildName("login_layout")
+          this.app.root_navigation_stack.setVisibleChildName("auth_layout")
+        })
+
+        register_box.append(to_login_btn)
 
       
 
@@ -74,7 +86,7 @@ export class AuthComponent extends Gtk.Stack{
 
 
     async submit_login(data: AUTH) {
-        if(!data || !data.email || !data.password){
+        if(!data || !data.role || !data.email || !data.password){
             console.log("cannot submit login because no data"); 
             return
         }
@@ -94,21 +106,26 @@ export class AuthComponent extends Gtk.Stack{
 
           //
           //const user = await this.authService.login(data)
-          const user = await AuthInstance.login(data)
+          //const user = await AuthInstance.login(data)
+          const user = await this.authService.login(data)
 
           if(!user){
             console.log("user is not found!!")
+            this.app.showToast("Cannot login!")
+            this.app.isAuth = false
             return
           }
 
           console.log("logged-in user:", user)
 
-          if(this.app) {
-            console.log("this.app user:", user, user.name, user.role)
+          if(this.app && user) {
+             this.app.logout_btn.setVisible(true)
+            this.app.isAuth = true
+            console.log("this.app user:", user, user.name, user?.role)
             this.app.active_user = user
             this.app.active_username = user.name
             this.app.active_user_role = user.role
-            AuthInstance.loggedIn_user = user
+            //AuthInstance.loggedIn_user = user
             if(this.app.left_sidebar){
               this.app.left_sidebar.updateLeftLabel(user.name)
             }
@@ -127,11 +144,17 @@ export class AuthComponent extends Gtk.Stack{
     }
 
     async submit_register(data: AUTH){
-        if(!data){
+        if(!data || !data.role || !data.email || !data.password){
             console.log("cannot submit register because no data"); 
             return
         }
          // get data from json file
+         const existing = await this.userService.getUserByEmail(data.email)
+         if(existing){
+           console.log("user is already existing!")
+           this.app.showToast("user or email is already existing!")
+          return
+         }
          // save data in json file
          await this.userService.create_user(data)
          //
