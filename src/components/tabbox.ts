@@ -1,11 +1,13 @@
 
 
+import { UserRole } from '../enums.js'
 import {Adw, GLib, Gio, Gtk} from '../index.js'
 
 export class TabBoxComponent extends Gtk.Box {
 
   app: any
   page_wrapper: any
+  key: string = ""
 
   constructor(app: any, wrapper_title: string, key: string, icon_name: string){
     super({
@@ -15,6 +17,7 @@ export class TabBoxComponent extends Gtk.Box {
         //cssClasses: ["view_stack"]
     })
     this.app = app
+    this.key = key
     console.log("tabbox key:", key)
      //const page_wrapper = this.app.view_stack.addTitled(this, wrapper_title, app._(key))
      //page_wrapper.setIconName(icon_name)
@@ -39,6 +42,10 @@ export class TabBoxComponent extends Gtk.Box {
   build(list_box: any, items: any[], nav_rows: any){
 
      for(const item of items){
+
+      if(this.key === "home" && this.app.active_user_role === UserRole.employee && item.key === "audit_logs"){
+          continue
+      }
 
         const row = new Adw.ActionRow()
         //row.setTitle(item.label ?? item.key)   
