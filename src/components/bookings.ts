@@ -22,16 +22,8 @@ export class BookingsComponent {
         
         })
         box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "bookings#"})
-        box.append(lbl)
-
-
-         
-
-        
-        
-
-        
+        //const lbl = new Gtk.Label({label: "bookings#"})
+        //box.append(lbl)
 
         // in right_sidebar
          const sideBox = new Gtk.Box({
