@@ -42,13 +42,43 @@ export class BookingsComponent {
          const side_group = new Adw.PreferencesGroup()
          sideBox.append(side_group)
          // inputs
-         // phone
-          const input_phone = new Adw.EntryRow({
+         this.build_form(side_group)
+         
+         const add_btn = new Gtk.Button({
+            label: "Add",
+            halign: Gtk.Align.END,
+         
+         })
+         box.append(add_btn)
+         add_btn.connect("clicked", () => {
+            //this.app.clear_right_sidebar()
+            side_title.setText("Add Booking")
+            sideBox.setVisible(true)
+
+         })
+        
+         const group = new Adw.PreferencesGroup()
+         const listBox = new Gtk.ListBox()
+         group.add(listBox)
+         box.append(group)
+
+         for(let item of [1,2,3]){
+             this.build_card(item, side_title, sideBox, listBox)
+         }
+
+        this.app.template_view.build_template_view("Bookings","home_bookngs_view", box)
+
+  }
+
+
+  build_form(parent: any){
+
+   const input_phone = new Adw.EntryRow({
             title: "Phone",
             inputPurpose: Gtk.InputPurpose.PHONE,
             //marginTop: 20,
           })
-          side_group.add(input_phone)
+          parent.add(input_phone)
 
 
           // 
@@ -58,28 +88,12 @@ export class BookingsComponent {
             halign: Gtk.Align.CENTER,
             activatable: true,
           })
-           side_group.add(submit_btn)
-        
-         
+           parent.add(submit_btn)
 
-            const add_btn = new Gtk.Button({label: "Add"})
-         box.append(add_btn)
-         add_btn.connect("clicked", () => {
-            //this.app.clear_right_sidebar()
-            side_title.setText("Add Booking")
-            sideBox.setVisible(true)
-
-         })
+  }
 
 
-         //
-        
-         const group = new Adw.PreferencesGroup()
-         const listBox = new Gtk.ListBox()
-         group.add(listBox)
-         box.append(group)
-
-         for(let item of [1,2,3]){
+  build_card(item: any, side_title: any, sideBox: any, listBox: any){
             const row = new Adw.ActionRow() 
             row.setTitle(`Booking-${item}`)
             row.setActivatable(true)
@@ -88,23 +102,10 @@ export class BookingsComponent {
             const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
             row.addSuffix(icon_suffix)
             row.connect("activated", ()=>{
-               //this.app.clear_right_sidebar()
                side_title.setText(`Edit booking ${item}`)
                sideBox.setVisible(true)
-
-         
-
-
             })
             listBox.append(row)
-
-         }
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Bookings","home_bookngs_view", box)
 
   }
 

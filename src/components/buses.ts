@@ -56,14 +56,57 @@ export class BusesComponent {
           })
           edit_side_group.add(input_name)
 
-          // phone
+          this.build_form(edit_side_group, isAdmin)
+           // 
+           const view_side_group = new Adw.PreferencesGroup({visible: false})
+           sideBox.append(view_side_group)
+
+           this.build_details(view_side_group)
+
+         
+          if(isAdmin){
+            const add_btn = new Gtk.Button({
+               label: "Add",
+               halign: Gtk.Align.END,
+            
+            })
+            box.append(add_btn)
+            add_btn.connect("clicked", () => {
+                  side_title.setText("Add Bus")
+                  edit_side_group.setVisible(true)
+                  sideBox.setVisible(true)
+             })
+         }
+         //
+         const group = new Adw.PreferencesGroup()
+         const listBox = new Gtk.ListBox()
+         group.add(listBox)
+         box.append(group)
+
+         for(let item of [1,2,3]){
+             this.build_card(item, side_title, sideBox, listBox, edit_side_group, view_side_group, isAdmin)
+         }
+
+
+
+
+        
+       
+        this.app.template_view.build_template_view("Buses","home_buses_view", box)
+
+  }
+
+
+   build_form(parent: any, isAdmin: boolean){
+
+   // phone
           const input_phone = new Adw.EntryRow({
             title: "Phone",
             inputPurpose: Gtk.InputPurpose.PHONE,
             editable: isAdmin
             //marginTop: 20,
           })
-          edit_side_group.add(input_phone)
+          parent.add(input_phone)
 
 
           // 
@@ -74,47 +117,30 @@ export class BusesComponent {
             activatable: true,
             visible: isAdmin,
           })
-           edit_side_group.add(submit_btn)
-           // 
-           const view_side_group = new Adw.PreferencesGroup({visible: false})
-           sideBox.append(view_side_group)
+           parent.add(submit_btn)
+
+  }
+
+  build_details(parent: any){
 
           const view_row = new Adw.ActionRow() 
-          view_side_group.add(view_row)
+          parent.add(view_row)
           view_row.setTitle(`Bus-lorem`)
           view_row.setSubtitle("Lorem lorem lorem")
           const view_row1 = new Adw.ActionRow() 
-          view_side_group.add(view_row1)
+          parent.add(view_row1)
           view_row1.setTitle(`Bus-lorem 1`)
           view_row1.setSubtitle("Lorem lorem lorem")
           const view_row2 = new Adw.ActionRow() 
-          view_side_group.add(view_row2)
+          parent.add(view_row2)
           view_row2.setTitle(`Bus-lorem 2`)
           view_row2.setSubtitle("Lorem lorem lorem")
-        
-         
 
-            
-          if(isAdmin){
-            const add_btn = new Gtk.Button({label: "Add"})
-            box.append(add_btn)
-            add_btn.connect("clicked", () => {
-                  side_title.setText("Add Bus")
-                  edit_side_group.setVisible(true)
-                  sideBox.setVisible(true)
-             })
-         }
+  }
 
 
-         //
-        
-         const group = new Adw.PreferencesGroup()
-         const listBox = new Gtk.ListBox()
-         group.add(listBox)
-         box.append(group)
-
-         for(let item of [1,2,3]){
-            const row = new Adw.ActionRow() 
+  build_card(item: any, side_title: any, sideBox: any, listBox: any, edit_side_group: any, view_side_group: any, isAdmin: boolean){
+             const row = new Adw.ActionRow() 
             row.setTitle(`Bus-${item}`)
             row.setActivatable(true)
             const icon_prefix = Gtk.Image.newFromIconName("emblem-documents")
@@ -134,23 +160,8 @@ export class BusesComponent {
                     view_side_group.setVisible(true)
                    sideBox.setVisible(true)
                }
-               
-               
-
-         
-
-
             })
             listBox.append(row)
-
-         }
-
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Buses","home_buses_view", box)
 
   }
 

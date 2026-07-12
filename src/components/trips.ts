@@ -50,56 +50,22 @@ export class TripsComponent {
          const edit_side_group = new Adw.PreferencesGroup({visible: false})
          sideBox.append(edit_side_group)
          // inputs
-         // phone
-          const input_name = new Adw.EntryRow({
-            title: "Name",
-            inputPurpose: Gtk.InputPurpose.NAME,
-            editable: isAdmin
-            //marginTop: 20,
-          })
-          edit_side_group.add(input_name)
-
-          // phone
-          const input_phone = new Adw.EntryRow({
-            title: "Phone",
-            inputPurpose: Gtk.InputPurpose.PHONE,
-            editable: isAdmin
-            //marginTop: 20,
-          })
-          edit_side_group.add(input_phone)
-
-
-          // 
-          // submit_btn
-          const submit_btn = new Adw.ActionRow({
-            title: "save",
-            halign: Gtk.Align.CENTER,
-            activatable: true,
-            visible: isAdmin,
-          })
-           edit_side_group.add(submit_btn)
+         this.build_form(edit_side_group, isAdmin)
+         
            // 
            const view_side_group = new Adw.PreferencesGroup({visible: false})
            sideBox.append(view_side_group)
+           this.build_details(view_side_group)
 
-          const view_row = new Adw.ActionRow() 
-          view_side_group.add(view_row)
-          view_row.setTitle(`Trip-lorem`)
-          view_row.setSubtitle("Lorem lorem lorem")
-          const view_row1 = new Adw.ActionRow() 
-          view_side_group.add(view_row1)
-          view_row1.setTitle(`Trip-lorem 1`)
-          view_row1.setSubtitle("Lorem lorem lorem")
-          const view_row2 = new Adw.ActionRow() 
-          view_side_group.add(view_row2)
-          view_row2.setTitle(`Trip-lorem 2`)
-          view_row2.setSubtitle("Lorem lorem lorem")
-        
-         
-
+          
+   
             
           if(isAdmin){
-            const add_btn = new Gtk.Button({label: "Add"})
+            const add_btn = new Gtk.Button({
+               label: "Add",
+               halign: Gtk.Align.END
+            
+            })
             box.append(add_btn)
             add_btn.connect("clicked", () => {
                   side_title.setText("Add Trip")
@@ -118,6 +84,56 @@ export class TripsComponent {
          box.append(group)
 
          for(let item of [1,2,3]){
+            this.build_card(item, side_title, sideBox, listBox, edit_side_group, view_side_group, isAdmin)
+
+         }
+       
+        this.app.template_view.build_template_view("Trips","home_trips_view", box)
+
+  }
+
+  build_form(parent: any, isAdmin: boolean){
+
+   // phone
+          const input_phone = new Adw.EntryRow({
+            title: "Phone",
+            inputPurpose: Gtk.InputPurpose.PHONE,
+            //editable: isAdmin
+            //marginTop: 20,
+          })
+          parent.add(input_phone)
+
+
+          // 
+          // submit_btn
+          const submit_btn = new Adw.ActionRow({
+            title: "save",
+            halign: Gtk.Align.CENTER,
+            activatable: true,
+            visible: isAdmin,
+          })
+           parent.add(submit_btn)
+
+  }
+
+  build_details(parent: any){
+
+          const view_row = new Adw.ActionRow() 
+          parent.add(view_row)
+          view_row.setTitle(`Trip-lorem`)
+          view_row.setSubtitle("Lorem lorem lorem")
+          const view_row1 = new Adw.ActionRow() 
+          parent.add(view_row1)
+          view_row1.setTitle(`Trip-lorem 1`)
+          view_row1.setSubtitle("Lorem lorem lorem")
+          const view_row2 = new Adw.ActionRow() 
+          parent.add(view_row2)
+          view_row2.setTitle(`Trip-lorem 2`)
+          view_row2.setSubtitle("Lorem lorem lorem")
+
+  }
+
+   build_card(item: any, side_title: any, sideBox: any, listBox: any, edit_side_group: any, view_side_group: any, isAdmin: boolean){
             const row = new Adw.ActionRow() 
             row.setTitle(`Trip-${item}`)
             row.setActivatable(true)
@@ -138,25 +154,10 @@ export class TripsComponent {
                     view_side_group.setVisible(true)
                    sideBox.setVisible(true)
                }
-               
-               
-
-         
-
-
             })
             listBox.append(row)
 
-         }
-
-
-
-
-
-        
-       
-        this.app.template_view.build_template_view("Trips","home_trips_view", box)
-
   }
+
 
 }

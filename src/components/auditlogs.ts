@@ -43,26 +43,7 @@ export class AuditLogsComponent {
            // 
            const view_side_group = new Adw.PreferencesGroup()
            sideBox.append(view_side_group)
-
-          const view_row = new Adw.ActionRow() 
-          view_side_group.add(view_row)
-          view_row.setTitle(`Audit-Log-lorem`)
-          view_row.setSubtitle("Lorem lorem lorem")
-          const view_row1 = new Adw.ActionRow() 
-          view_side_group.add(view_row1)
-          view_row1.setTitle(`Audit-Log-lorem 1`)
-          view_row1.setSubtitle("Lorem lorem lorem")
-          const view_row2 = new Adw.ActionRow() 
-          view_side_group.add(view_row2)
-          view_row2.setTitle(`Audit-Log-lorem 2`)
-          view_row2.setSubtitle("Lorem lorem lorem")
-        
-         
-
-            
-         
-
-
+           this.build_details(view_side_group)
          //
         
          const group = new Adw.PreferencesGroup()
@@ -71,6 +52,31 @@ export class AuditLogsComponent {
          box.append(group)
 
          for(let item of [1,2,3]){
+            this.build_card(item, side_title, sideBox, listBox)
+         }
+
+        this.app.template_view.build_template_view("AuditLogs","home_audit_logs_view", box)
+
+  }
+
+  build_details(parent: any){
+
+          const view_row = new Adw.ActionRow() 
+          parent.add(view_row)
+          view_row.setTitle(`Audit-Log-lorem`)
+          view_row.setSubtitle("Lorem lorem lorem")
+          const view_row1 = new Adw.ActionRow() 
+          parent.add(view_row1)
+          view_row1.setTitle(`Audit-Log-lorem 1`)
+          view_row1.setSubtitle("Lorem lorem lorem")
+          const view_row2 = new Adw.ActionRow() 
+          parent.add(view_row2)
+          view_row2.setTitle(`Audit-Log-lorem 2`)
+          view_row2.setSubtitle("Lorem lorem lorem")
+
+  }
+
+  build_card(item: any, side_title: any, sideBox: any, listBox: any){
             const row = new Adw.ActionRow() 
             row.setTitle(`Audit-Log-${item}`)
             row.setActivatable(true)
@@ -81,34 +87,8 @@ export class AuditLogsComponent {
             row.connect("activated", ()=>{
                side_title.setText(`Audi-Log ${item}`)
                sideBox.setVisible(true)
-               //this.app.clear_right_sidebar()
-               /*if(isAdmin){
-                  side_title.setText(`Edit Trip ${item}`)
-                  //edit_side_group.setVisible(true)
-                  //view_side_group.setVisible(true)
-                  sideBox.setVisible(true)
-               }else {
-                   side_title.setText(`Trip ${item}`)
-                    //edit_side_group.setVisible(false)
-                    //view_side_group.setVisible(true)
-                   sideBox.setVisible(true)
-               }*/
-               
-               
-
-         
-
-
             })
             listBox.append(row)
-
-         }
-
-
-
-        
-       
-        this.app.template_view.build_template_view("AuditLogs","home_audit_logs_view", box)
 
   }
 
