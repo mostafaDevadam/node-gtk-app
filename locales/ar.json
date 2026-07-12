@@ -25,5 +25,8 @@
     "visual_blueprint_preview": "معاينة المخطط المرئي: {{name}}",
     "role": "الدور",
     "admin": "مسؤول",
-    "employee": "موظف"
+    "employee": "موظف",
+    "login": "تسجيل الدخول",
+    "register": "تسجيل",
+    "logout": "تسجيل الخروج"
 }

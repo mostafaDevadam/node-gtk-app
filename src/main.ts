@@ -463,8 +463,9 @@ class App extends Adw.Application {
       headerBar.packStart(this.role_lbl)
 
       // logout-btn
-      this.logout_btn = new Gtk.Button({label: "Logout"})
+      this.logout_btn = new Gtk.Button()
       this.logout_btn.setVisible(false)
+      this.register_widget(this.logout_btn, "label", "logout")
 
       /*if(!this.isAuth){
         this.logout_btn.setVisible(false)

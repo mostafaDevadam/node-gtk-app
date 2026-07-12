@@ -26,5 +26,8 @@
     "visual_blueprint_preview": "Visual Blueprint Preview: {{name}}",
     "role": "Role",
     "admin": "Admin",
-    "employee": "Employee"
+    "employee": "Employee",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
 }
