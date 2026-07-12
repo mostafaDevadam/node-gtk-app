@@ -1,4 +1,5 @@
 
+import { UserRole } from '../enums.js';
 import {Adw, GLib, Gio, Gtk} from '../index.js'
 
 
@@ -12,18 +13,96 @@ export class AuditLogsComponent {
 
   build_logs_view(){
 
+   const isAdmin = this.app.active_user_role === UserRole.admin || this.app.active_user_role === "admin";
+   
+
      const box = new Gtk.Box({
           orientation: Gtk.Orientation.VERTICAL, 
           spacing: 10,
           marginBottom: 12,
           marginStart: 12,
           marginEnd: 12,
-         
-        
         })
         box.setSizeRequest(240, -1)
-        const lbl = new Gtk.Label({label: "AuditLogs#"})
-        box.append(lbl)
+        //const lbl = new Gtk.Label({label: "AuditLogs#"})
+        //box.append(lbl)
+        // in right_sidebar
+         const sideBox = new Gtk.Box({
+               orientation: Gtk.Orientation.VERTICAL, 
+               spacing: 10,
+               marginBottom: 12,
+               marginStart: 12,
+               marginEnd: 12,
+               visible: false,
+         })
+         this.app.right_sidebar.append(sideBox)
+         const side_title = new Gtk.Label({label: "Audit-Log"})
+         sideBox.append(side_title)
+
+         
+           // 
+           const view_side_group = new Adw.PreferencesGroup()
+           sideBox.append(view_side_group)
+
+          const view_row = new Adw.ActionRow() 
+          view_side_group.add(view_row)
+          view_row.setTitle(`Audit-Log-lorem`)
+          view_row.setSubtitle("Lorem lorem lorem")
+          const view_row1 = new Adw.ActionRow() 
+          view_side_group.add(view_row1)
+          view_row1.setTitle(`Audit-Log-lorem 1`)
+          view_row1.setSubtitle("Lorem lorem lorem")
+          const view_row2 = new Adw.ActionRow() 
+          view_side_group.add(view_row2)
+          view_row2.setTitle(`Audit-Log-lorem 2`)
+          view_row2.setSubtitle("Lorem lorem lorem")
+        
+         
+
+            
+         
+
+
+         //
+        
+         const group = new Adw.PreferencesGroup()
+         const listBox = new Gtk.ListBox()
+         group.add(listBox)
+         box.append(group)
+
+         for(let item of [1,2,3]){
+            const row = new Adw.ActionRow() 
+            row.setTitle(`Audit-Log-${item}`)
+            row.setActivatable(true)
+            const icon_prefix = Gtk.Image.newFromIconName("emblem-documents")
+            row.addPrefix(icon_prefix)
+            const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
+            row.addSuffix(icon_suffix)
+            row.connect("activated", ()=>{
+               side_title.setText(`Audi-Log ${item}`)
+               sideBox.setVisible(true)
+               //this.app.clear_right_sidebar()
+               /*if(isAdmin){
+                  side_title.setText(`Edit Trip ${item}`)
+                  //edit_side_group.setVisible(true)
+                  //view_side_group.setVisible(true)
+                  sideBox.setVisible(true)
+               }else {
+                   side_title.setText(`Trip ${item}`)
+                    //edit_side_group.setVisible(false)
+                    //view_side_group.setVisible(true)
+                   sideBox.setVisible(true)
+               }*/
+               
+               
+
+         
+
+
+            })
+            listBox.append(row)
+
+         }
 
 
 
