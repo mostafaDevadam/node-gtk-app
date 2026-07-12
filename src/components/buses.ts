@@ -25,6 +25,11 @@ export class BusesComponent {
         const lbl = new Gtk.Label({label: "Buses#"})
         box.append(lbl)
 
+        if(this.app.active_user_role == "admin"){
+         const btn = new Gtk.Button({label: "Add"})
+         box.append(btn)
+        }
+
 
 
         
