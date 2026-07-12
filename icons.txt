@@ -5,6 +5,9 @@ document-open-recent-symbolic
 view-list-ordered-symbolic
 x-office-calendar-symbolic
 preferences-system-network-symbolic
+preferences-system-time-symbolic
 user-info-symbolic
 mark-location-symbolic
 edit-copy-symbolic
+emblem-documents
+mail-attachment-symbolic
