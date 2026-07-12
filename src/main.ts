@@ -454,6 +454,20 @@ class App extends Adw.Application {
     });
      //
 
+      // root_navigation_stack
+       this.root_navigation_stack = new Gtk.Stack({
+        transitionType: Gtk.StackTransitionType.NONE,
+      })
+      //
+     const inner_split_view = new Adw.OverlaySplitView()
+     this.outer_split_view = new Adw.OverlaySplitView()
+        //
+     this.auth_nav_stack = new AuthComponent(this)
+     this.auth_nav_stack.setVisible(false)
+     this.root_navigation_stack.addNamed(this.auth_nav_stack, "auth_layout")
+
+     this.check_auto_login()
+
       //this.mainMenuActions()
       //headerBar.packEnd(this.mainMenu())
 
@@ -543,6 +557,7 @@ class App extends Adw.Application {
         { "key": "trips", "icon": "preferences-system-network-symbolic", "label": this._("trips") },
         { "key": "buses", "icon": "avatar-default-symbolic", "label": this._("buses") }, // alternative standard: "view-grid-symbolic"
         { "key": "history", "icon": "document-open-recent-symbolic", "label": this._("history") },
+
         { "key": "audit_logs", "icon": "view-list-ordered-symbolic","label": this._("audit_logs") }
       ]
 
@@ -660,14 +675,14 @@ class App extends Adw.Application {
       scroll_win.setPolicy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)*/
 
       // inner_split_view
-     const inner_split_view = new Adw.OverlaySplitView()
+     //const inner_split_view = new Adw.OverlaySplitView()
       inner_split_view.setSidebar(this.left_sidebar)
       inner_split_view.setContent(this.center_stack)
       inner_split_view.setSidebarPosition(Gtk.PackType.START)
       inner_split_view.setMinSidebarWidth(200)
 
       // outer_split_view
-      this.outer_split_view = new Adw.OverlaySplitView()
+      //this.outer_split_view = new Adw.OverlaySplitView()
       this.outer_split_view.setSidebar(this.right_sidebar)
       this.outer_split_view.setContent(inner_split_view)
       this.outer_split_view.setSidebarPosition(Gtk.PackType.END)
@@ -675,9 +690,9 @@ class App extends Adw.Application {
       //outer_split_view.setMaxSidebarWidth(360)
 
       // root_navigation_stack
-       this.root_navigation_stack = new Gtk.Stack({
+      /* this.root_navigation_stack = new Gtk.Stack({
         transitionType: Gtk.StackTransitionType.NONE,
-      })
+      })*/
 
       this.root_navigation_stack.addNamed(this.outer_split_view, "main_layout")
       toolbarView.setContent(this.root_navigation_stack)
@@ -687,11 +702,11 @@ class App extends Adw.Application {
 
 
         //
-     this.auth_nav_stack = new AuthComponent(this)
+     /*this.auth_nav_stack = new AuthComponent(this)
      this.auth_nav_stack.setVisible(false)
      this.root_navigation_stack.addNamed(this.auth_nav_stack, "auth_layout")
 
-     this.check_auto_login()
+     this.check_auto_login()*/
 
         // test in center_stack
          /*const test_center_box = new Gtk.Box({
@@ -865,6 +880,25 @@ class App extends Adw.Application {
       }
 
 
+    async get_user_auto_login(){
+      const config = await StorageService.readFromJsonAsObject("storage", "config") as {auto_login: boolean, saved_email: string}
+      if(!config || !config.saved_email){
+        console.log("no config then no auto_login, no user")
+        return
+      }
+
+      const userService = new UserService()
+      const user = await userService.getUserByEmail(config.saved_email)
+
+      if(!user){
+        console.log("no user for auto login")
+        return
+      }
+
+      this.active_user_role = user.role
+
+    }
+
     async check_auto_login(){
           const config = await StorageService.readFromJsonAsObject("storage", "config") as {auto_login: boolean, saved_email: string}
 
@@ -900,6 +934,14 @@ class App extends Adw.Application {
           }
 
           console.log("check_auto_login user:", user)
+          this.active_user = user
+          this.active_user_role = user.role
+          this.active_username = user.name
+          this.role_text = user.role
+          this.role_lbl.setText(user.role)
+
+          console.log("check_auto_login role:", user.role, this.active_user_role)
+
 
           this.logout_btn.setVisible(true)
           this.role_lbl.setVisible(true)
@@ -915,9 +957,7 @@ class App extends Adw.Application {
           const styleManager = Adw.StyleManager.getDefault();
           styleManager.colorScheme = settings.is_dark_mode ? Adw.ColorScheme.PREFER_DARK : Adw.ColorScheme.PREFER_LIGHT;
 
-          this.active_user = user
-          this.active_user_role = user.role
-          this.active_username = user.name
+          
           
           if(this.left_sidebar){
               this.left_sidebar.updateLeftLabel(user.name)

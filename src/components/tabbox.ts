@@ -39,13 +39,28 @@ export class TabBoxComponent extends Gtk.Box {
   }
 
 
-  build(list_box: any, items: any[], nav_rows: any){
+  async build(list_box: any, items: any[], nav_rows: Record<string, any> ){
+
+     await this.app.get_user_auto_login()
+
+     const isAdmin = this.app.active_user_role === UserRole.admin || this.app.active_user_role === "admin";
+
+     console.log("role isAdmin##", isAdmin, this.app.active_user_role, this.app.role_text, this.app.role_lbl.getText())
 
      for(const item of items){
 
-      if(this.key === "home" && this.app.active_user_role === UserRole.employee && item.key === "audit_logs"){
-          continue
-      }
+    
+        // 2. Gate the audit logs row based on clearance status
+
+        if (this.app && item.key === "audit_logs" && !isAdmin) {
+            console.log("Hiding audit logs from unauthorized role:", this.app.active_user_role);
+            // Skip appending this row entirely by returning early out of the loop iteration
+            continue
+            
+        }
+        
+
+        
 
         const row = new Adw.ActionRow()
         //row.setTitle(item.label ?? item.key)   
@@ -60,8 +75,15 @@ export class TabBoxComponent extends Gtk.Box {
         const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
         row.addSuffix(icon_suffix)
         row.connect("activated", ()=>this.app.on_home_item_clicked(item))
-        list_box.append(row)
-        nav_rows[item.key] = item
+
+       
+         
+        
+       list_box.append(row)
+           
+           nav_rows[item.key] = item
+        
+       
          
       }
       this.append(list_box)

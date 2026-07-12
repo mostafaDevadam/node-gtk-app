@@ -35,7 +35,7 @@ export class UserService {
 
          if(!one){
             console.log("user by email is not found!")
-            return {}
+            return null
          }
 
          return one
