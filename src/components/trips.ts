@@ -94,14 +94,116 @@ export class TripsComponent {
 
   build_form(parent: any, isAdmin: boolean){
 
-   // phone
-          const input_phone = new Adw.EntryRow({
-            title: "Phone",
-            inputPurpose: Gtk.InputPurpose.PHONE,
+   /*
+   bus_id (FK) 
+   departure
+   destination
+   departure_time
+   arrival_time
+   status
+   available_seats
+   */
+
+          // dropdwon-list for buses
+
+
+
+         // departure
+          const input_departure = new Adw.EntryRow({
+            title: "Departure ",
+            inputPurpose: Gtk.InputPurpose.NAME,
             //editable: isAdmin
             //marginTop: 20,
           })
-          parent.add(input_phone)
+          parent.add(input_departure)
+
+          // destination
+          const input_destination = new Adw.EntryRow({
+            title: "Destination",
+            inputPurpose: Gtk.InputPurpose.NAME,
+          })
+          parent.add(input_destination)
+
+          // departure_time
+          const input_departure_time = new Adw.EntryRow({
+            title: "Departure Time",
+            inputPurpose: Gtk.InputPurpose.NUMBER,
+          })
+          parent.add(input_departure_time)
+
+          // calendar
+          /*const box = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            spacing: 12,
+            marginStart: 24,
+            marginEnd: 24,
+            marginTop: 24,
+            marginBottom: 24
+          })*/
+
+          // Create the GTK Calendar widget
+          const popover = new Gtk.Popover({
+            hasArrow: true,
+          })
+          const calendar = new Gtk.Calendar()
+          //box.append(calendar)
+          popover.setChild(calendar)
+          
+
+          // Action button to read the selected date
+          const calendar_button = new Gtk.Button({ 
+            iconName: 'x-office-calendar-symbolic',
+            valign: Gtk.Align.CENTER,
+            cssClasses: ['flat'],
+
+           })
+           popover.setParent(calendar_button)
+           input_departure_time.addSuffix(calendar_button)
+
+
+          calendar_button.on('clicked', () => {
+            // In GTK 4, calendar.getDate() returns a GLib.DateTime
+            const datetime = calendar.getDate()
+            console.log(`Selected Date: ${datetime.format('%Y-%m-%d')}`)
+
+            popover.popup()
+          })
+          //box.append(calendar_button)
+
+          //parent.add(box)
+
+          calendar.on('day-selected',() => {
+               
+                const datetime = calendar.getDate()
+                const dateString = datetime.format("%Y-%m-%d")
+                input_departure_time.setText(dateString!!)
+                popover.popdown()
+          })
+
+
+         
+
+         // arrival_time
+          const input_arrival_time = new Adw.EntryRow({
+            title: "Arrival Time",
+            inputPurpose: Gtk.InputPurpose.NAME,
+          })
+          parent.add(input_arrival_time)
+
+         
+         // status
+          const input_status = new Adw.EntryRow({
+            title: "Status",
+            inputPurpose: Gtk.InputPurpose.NAME,
+          })
+          parent.add(input_status)
+
+          // available_seats
+          const input_available_seats = new Adw.EntryRow({
+            title: "Available Seats",
+            inputPurpose: Gtk.InputPurpose.NUMBER,
+          })
+          parent.add(input_available_seats)
 
 
           // 

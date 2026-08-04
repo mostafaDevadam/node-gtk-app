@@ -48,13 +48,13 @@ export class BusesComponent {
          sideBox.append(edit_side_group)
          // inputs
          // phone
-          const input_name = new Adw.EntryRow({
+          /*const input_name = new Adw.EntryRow({
             title: "Name",
             inputPurpose: Gtk.InputPurpose.NAME,
             editable: isAdmin
             //marginTop: 20,
           })
-          edit_side_group.add(input_name)
+          edit_side_group.add(input_name)*/
 
           this.build_form(edit_side_group, isAdmin)
            // 
@@ -64,7 +64,7 @@ export class BusesComponent {
            this.build_details(view_side_group)
 
          
-          if(isAdmin){
+         if(isAdmin){
             const add_btn = new Gtk.Button({
                label: "Add",
                halign: Gtk.Align.END,
@@ -99,14 +99,40 @@ export class BusesComponent {
 
    build_form(parent: any, isAdmin: boolean){
 
-   // phone
-          const input_phone = new Adw.EntryRow({
-            title: "Phone",
-            inputPurpose: Gtk.InputPurpose.PHONE,
+         // bus_number
+          const input_bus_number = new Adw.EntryRow({
+            title: "Bus Number",
+            inputPurpose: Gtk.InputPurpose.NUMBER,
             editable: isAdmin
             //marginTop: 20,
           })
-          parent.add(input_phone)
+          parent.add(input_bus_number)
+         
+         // capacity
+          const input_capacity = new Adw.EntryRow({
+            title: "Capacity",
+            inputPurpose: Gtk.InputPurpose.NUMBER,
+            editable: isAdmin
+            
+          })
+          parent.add(input_capacity)
+           // bus_type
+          const input_bus_type = new Adw.EntryRow({
+            title: "Bus Type",
+            inputPurpose: Gtk.InputPurpose.NAME,
+            editable: isAdmin
+            
+          })
+          parent.add(input_bus_type)
+           // capacity
+          const input_chair_count = new Adw.EntryRow({
+            title: "Chair Count",
+            inputPurpose: Gtk.InputPurpose.NUMBER,
+            editable: isAdmin
+            
+          })
+          parent.add(input_chair_count)
+
 
 
           // 

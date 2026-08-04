@@ -2,7 +2,16 @@ import { UserRole } from "../enums.js";
 import { AUTH, USER } from "../types.js"
 import { StorageService } from "./storage.service.js"
 import { v4 as uuidv4 } from 'uuid';
+/*
+user_id (PK)
+username
+password_hash
+email
+role (emp/admin)
+created_at
 
+
+*/
 export class UserService {
 
     

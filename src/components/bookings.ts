@@ -43,6 +43,8 @@ export class BookingsComponent {
          sideBox.append(side_group)
          // inputs
          this.build_form(side_group)
+
+        
          
          const add_btn = new Gtk.Button({
             label: "Add",
@@ -72,13 +74,112 @@ export class BookingsComponent {
 
 
   build_form(parent: any){
+        
 
-   const input_phone = new Adw.EntryRow({
+          /*
+          trip_id (FK)
+         customer_id(FK)
+         user_id (FK)
+         seat_number
+         booking_date
+         status
+         price
+         payment_status
+          */
+
+         // customer-form
+         
+         const side_group_customer = new Adw.PreferencesGroup()
+         side_group_customer.setTitle("Customer")
+         parent.add(side_group_customer)
+
+         /*
+         name
+         phone (unique) 
+         email
+         address
+         */
+         // seat_number 
+         const input_cust_name = new Adw.EntryRow({
+            title: "Customer Name",
+            inputPurpose: Gtk.InputPurpose.NAME,
+          })
+          side_group_customer.add(input_cust_name)
+
+          const input_phone = new Adw.EntryRow({
             title: "Phone",
             inputPurpose: Gtk.InputPurpose.PHONE,
-            //marginTop: 20,
           })
-          parent.add(input_phone)
+          side_group_customer.add(input_phone)
+
+         
+          const input_email = new Adw.EntryRow({
+            title: "Email",
+            inputPurpose: Gtk.InputPurpose.EMAIL,
+          })
+          side_group_customer.add(input_email)
+
+          const input_address = new Adw.EntryRow({
+            title: "Address",
+            inputPurpose: Gtk.InputPurpose.NAME,
+          })
+          side_group_customer.add(input_address)
+
+
+         // submit_btn
+          const submit_btn_cust = new Adw.ActionRow({
+            title: "save",
+            halign: Gtk.Align.CENTER,
+            activatable: true,
+          })
+           side_group_customer.add(submit_btn_cust)
+
+
+         // booking-form
+         const side_group_booking = new Adw.PreferencesGroup()
+         side_group_booking.setTitle("Booking")
+         parent.add(side_group_booking)
+
+         // dropdown-list for trips
+
+         // seat_number 
+         const input_seat_number = new Adw.EntryRow({
+            title: "Seat Number",
+            inputPurpose: Gtk.InputPurpose.NUMBER,
+          })
+          side_group_booking.add(input_seat_number)
+
+         
+          // seat_number 
+         const input_booking_date = new Adw.EntryRow({
+            title: "Booking Date",
+            inputPurpose: Gtk.InputPurpose.NAME,
+          })
+          side_group_booking.add(input_booking_date)
+
+           // seat_number 
+         const input_status = new Adw.EntryRow({
+            title: "Status",
+            inputPurpose: Gtk.InputPurpose.NAME,
+          })
+          side_group_booking.add(input_status)
+
+           // seat_number 
+         const input_price = new Adw.EntryRow({
+            title: "Price",
+            inputPurpose: Gtk.InputPurpose.NAME,
+          })
+          side_group_booking.add(input_price)
+
+            // seat_number 
+         const input_payment_status = new Adw.EntryRow({
+            title: "Payment Status",
+            inputPurpose: Gtk.InputPurpose.NAME,
+          })
+          side_group_booking.add(input_payment_status)
+
+
+
 
 
           // 
@@ -88,7 +189,7 @@ export class BookingsComponent {
             halign: Gtk.Align.CENTER,
             activatable: true,
           })
-           parent.add(submit_btn)
+           side_group_booking.add(submit_btn)
 
   }
 
