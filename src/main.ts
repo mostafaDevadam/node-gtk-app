@@ -528,6 +528,7 @@ class App extends Adw.Application {
       
       // right_sidebar
       this.right_sidebar = new RightSidebar();
+      this.right_sidebar.setSizeRequest(350, -1) 
 
       
       //left: 1.view-stack 2.tab-box 3.listbox 4.items 5.page
