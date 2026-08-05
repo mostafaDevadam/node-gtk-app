@@ -101,7 +101,7 @@ export class BusesComponent {
     box.append(group)
 
 
-    const list = await this.bus_service.get_all()
+    const list = await this.bus_service.getAll()
 
     for (let item of list) {
       this.build_card(item, side_title, sideBox, listBox, edit_side_group, view_side_group, isAdmin, this.isEdit)
