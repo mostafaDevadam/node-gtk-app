@@ -86,6 +86,8 @@ const saveInJson = async (folder_name: string, file_name: string, data: any) => 
          }
 
          currentData.push(data)
+         // if data has id then loop of currentData: if item.id is data.id then item = data else return false
+         // if data has not id then currentData.push(data)
            
          await writeFile(file_path, JSON.stringify(currentData, null, 2), 'utf-8')
       
