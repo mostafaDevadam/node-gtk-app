@@ -5,18 +5,29 @@ import { Adw, GLib, Gio, Gtk } from '../../index.js'
 export class InputDateTime {
 
    input_time: any
+   input_date_time: any
+
+   constructor(){
+
+    
+
+   }
 
 
 
 
    build(parent: any, title: string, input_time: any) {
 
-    const input_date_time = new Adw.EntryRow({
-      title: title,
+     this.input_date_time = new Adw.EntryRow({
+      //title: title,
       inputPurpose: Gtk.InputPurpose.NAME,
       editable: false,
     })
-    parent.add(input_date_time)
+
+    this.input_date_time.setTitle(title)
+
+   
+    parent.add(this.input_date_time)
 
 
     const pickerButton = new Gtk.Button({
@@ -24,7 +35,7 @@ export class InputDateTime {
       valign: Gtk.Align.CENTER,
       cssClasses: ['flat'],
     })
-    input_date_time.addSuffix(pickerButton)
+    this.input_date_time.addSuffix(pickerButton)
 
     // Create the GTK Calendar widget
     const popover = new Gtk.Popover({
@@ -113,15 +124,20 @@ export class InputDateTime {
       const minutes = String(minuteSpin.getValue()).padStart(2, '0')
 
       // Combine into the EntryRow
-      input_date_time.setText(`${formattedDate} ${hours}:${minutes}`)
-      this.input_time = input_date_time.getText()
+      this.input_date_time.setText(`${formattedDate} ${hours}:${minutes}`)
+      this.input_time = this.input_date_time.getText()
       popover.popdown()
     })
 
-    input_date_time.addSuffix(pickerButton)
+    this.input_date_time.addSuffix(pickerButton)
 
-    return input_date_time.getText()
+    return this.input_date_time.getText()
 
+
+  }
+
+  setDefaultValue(value: string){
+    this.input_date_time.setText(value)
 
   }
 
