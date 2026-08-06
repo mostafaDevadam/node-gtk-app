@@ -163,8 +163,10 @@ export class TripsComponent {
   bus_service: BusService
   selectedBusId: string = ""
   currentStatusValue: string = ""
+  bus_list: BUS[] = []; 
+  comboRow: any
+  displayNames: string[] = []
 
-  
 
   constructor(app: any) {
     this.app = app
@@ -172,10 +174,13 @@ export class TripsComponent {
     this.departure_time = new InputDateTime()
     this.trip_service = new TripService()
     this.bus_service = new BusService()
+    
   }
 
   async build_trips_view() {
     const isAdmin = this.app.active_user_role === UserRole.admin || this.app.active_user_role === "admin";
+
+    this.comboRow = new Adw.ComboRow();
 
 
     const box = new Gtk.Box({
@@ -223,28 +228,28 @@ export class TripsComponent {
 
 
 
-    const bus_list: BUS[] = await this.bus_service.getAll()
+    this.bus_list = await this.bus_service.getAll()
 
     //console.log("bus_list:", bus_list)
 
-    this.selectedBusId = bus_list[0].id!!
+    this.selectedBusId = this.bus_list[0].id!!
 
 
     // Handle fallback if database returns an empty payload array
-    if (bus_list && bus_list.length > 0) {
+    if (this.bus_list && this.bus_list.length > 0) {
 
       // Set fallback baseline ID
-      this.selectedBusId = bus_list[0].id!!;
+      this.selectedBusId = this.bus_list[0].id!!;
 
       // 2. Extract only the human-readable 'name' strings for the visual model
-      const displayNames = bus_list.map(m => m.bus_number!!.toString());
-      const stringList = Gtk.StringList.new(displayNames);
+      this.displayNames = this.bus_list.map(m => m.bus_number!!.toString());
+      const stringList = Gtk.StringList.new(this.displayNames);
 
       // 3. Initialize your Dropdown Row
-      const comboRow = new Adw.ComboRow();
-      comboRow.setTitle('Select Bus'); // Fixed title context
-      comboRow.setModel(stringList);
-      edit_side_group.add(comboRow);
+      //const comboRow = new Adw.ComboRow();
+      this.comboRow.setTitle('Select Bus'); // Fixed title context
+      this.comboRow.setModel(stringList);
+      edit_side_group.add(this.comboRow);
 
       // 4. Update the internal component state whenever the user alters the selection
      /* comboRow.on('notify::selected', () => {
@@ -256,12 +261,12 @@ export class TripsComponent {
       });*/
 
       // 4. Safely pull data on change using the native index
-      comboRow.on('notify::selected', () => {
-        const selectedIndex = comboRow.getSelected();
+      this.comboRow.on('notify::selected', () => {
+        const selectedIndex = this.comboRow.getSelected();
 
         // Bounds check protection 
-        if (selectedIndex >= 0 && selectedIndex < bus_list.length) {
-          const selectedData = bus_list[selectedIndex];
+        if (selectedIndex >= 0 && selectedIndex < this.bus_list.length) {
+          const selectedData = this.bus_list[selectedIndex];
 
           // Zero type errors, direct structural access
           console.log(`Saved Database ID: ${selectedData.id}`);
@@ -275,18 +280,18 @@ export class TripsComponent {
 
       // 5. Look up the index match 
       if (this.selected_trip) {
-        const defaultIndex = bus_list.findIndex(item => item.id === this.selected_trip?.bus_id);
+        const defaultIndex = this.bus_list.findIndex(item => item.id === this.selected_trip?.bus_id);
         console.log("---------------------------defaultIndex:", defaultIndex);
 
         if (defaultIndex !== -1) {
           // CRITICAL FIX: Push the selection code to the next GLib main loop tick.
           // This prevents GTK from dropping the selection value during layout init.
-          GLib.timeoutAdd(GLib.PRIORITY_DEFAULT, 1, () => {
-            comboRow.setSelected(defaultIndex);
+         /* GLib.timeoutAdd(GLib.PRIORITY_DEFAULT, 1, () => {
+            this.comboRow.setSelected(defaultIndex);
             // Also align your internal state variable instantly
-            this.selectedBusId = bus_list[defaultIndex].id!!;
+            this.selectedBusId = this.bus_list[defaultIndex].id!!;
             return GLib.SOURCE_REMOVE; // Tells GLib not to repeat this callback loop
-          });
+          });*/
         }
       }
     }
@@ -543,6 +548,9 @@ export class TripsComponent {
           //bus_id
           //departure_time
           //arrival_time
+          const l1 = this.bus_list.findIndex(fl => fl.id == item.bus_id)
+          //console.log("################# l1:", l1, this.bus_list[l1], this.displayNames[l1])
+          this.comboRow.setSelected(l1);
 
         }
 
