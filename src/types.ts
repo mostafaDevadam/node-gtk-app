@@ -26,3 +26,17 @@ export type BUS = {
    created_at?: string
    updated_at?: string
 }
+
+export type TRIP_TYPE = {
+   id?: string
+   bus_id: string
+   departure?: string
+   destination?: string
+   departure_time?: string
+   arrival_time?: string
+   status?: string
+   available_seats?: string
+   created_at?: string
+   updated_at?: string
+
+}
