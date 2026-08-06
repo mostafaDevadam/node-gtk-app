@@ -29,6 +29,28 @@ export class TripService {
         await StorageService.saveInJson("storage", "trips", trip)
     }
 
+    async update(id: string, data: TRIP_TYPE) {
+
+        data.updated_at = new Date().toISOString()
+        console.log("[TripService] update() :", id, data);
+
+        const one = await this.getById(data.id!!)
+        if (!one) {
+            console.log("cannot update trip because not found")
+            return
+        }
+
+
+        console.log("[TripService] update() one:", id, one);
+
+        await StorageService.updateInJson("storage", "trips", data)
+
+
+
+
+
+    }
+
 
     async getAll(): Promise<TRIP_TYPE[] | any[]> {
         const list = await StorageService.readFromJson("storage", "trips")!!
@@ -37,6 +59,20 @@ export class TripService {
             return []
         }
         return list
+    }
+
+
+    async getById(id: string) {
+        const all = await this.getAll()
+
+        const one = all.filter((fl) => fl.id === id)[0]
+
+        if (!one) {
+            console.log("trip by id is not found!")
+            return {}
+        }
+
+        return one
     }
 
 
