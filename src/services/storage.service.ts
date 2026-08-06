@@ -98,6 +98,103 @@ const saveInJson = async (folder_name: string, file_name: string, data: any) => 
 
 }
 
+// update in json file
+const updateInJson = async (folder_name: string, file_name: string, data: any) => {
+      const folder_path = join(process.cwd(), folder_name)
+      const file_path = join(folder_path, `${file_name}.json`)
+
+      if(!data.id){
+        console.log("cannot update in json because data has no id")
+        return
+      }
+
+       try{
+         await mkdir(folder_path, {recursive: true})
+
+         let currentData : any[] = []
+         
+         try {
+          const rawFileContent = await readFile(file_path, "utf-8")
+          currentData = JSON.parse(rawFileContent)
+
+          if(!Array.isArray(currentData)){
+            currentData = [currentData]
+          }
+          
+         } catch (error: any) {
+            if(error.code !== 'ENOENT') throw error
+         }
+
+         console.log("[StorageService] updateInJson() currentData before:", currentData)
+
+         currentData = currentData.map((m) => {
+          if (m.id == data.id){
+              m = data
+          }
+          return m
+        })
+
+         console.log("[StorageService] updateInJson() currentData after:", currentData)
+
+        
+         // if data has id then loop of currentData: if item.id is data.id then item = data else return false
+         
+           
+         await writeFile(file_path, JSON.stringify(currentData, null, 2), 'utf-8')
+      
+         //console.log("Success saved data in json file: ", currentData.length)
+        } catch (error) {
+        console.error("Failed to write file")
+      }
+
+}
+
+// remove in json file
+const removeInJson = async (folder_name: string, file_name: string, id: any) => {
+      const folder_path = join(process.cwd(), folder_name)
+      const file_path = join(folder_path, `${file_name}.json`)
+
+      if(!id){
+        console.log("cannot remove in json because no id")
+        return
+      }
+
+       try{
+         await mkdir(folder_path, {recursive: true})
+
+         let currentData : any[] = []
+         
+         try {
+          const rawFileContent = await readFile(file_path, "utf-8")
+          currentData = JSON.parse(rawFileContent)
+
+          if(!Array.isArray(currentData)){
+            currentData = [currentData]
+          }
+          
+         } catch (error: any) {
+            if(error.code !== 'ENOENT') throw error
+         }
+
+         console.log("[StorageService] removeInJson() currentData before:", currentData)
+
+         currentData = currentData.map((m) => {
+          if(m.id != id){
+            return m
+          }
+         })
+
+         console.log("[StorageService] removeInJson() currentData after:", currentData)
+
+         //await writeFile(file_path, JSON.stringify(currentData, null, 2), 'utf-8')
+      
+         //console.log("Success saved data in json file: ", currentData.length)
+        } catch (error) {
+        console.error("Failed to write file")
+      }
+
+}
+
 const saveData = async (folder_name: string, file_name: string, data: any) => {
       const folder_path = join(process.cwd(), folder_name)
       const file_path = join(folder_path, `${file_name}.json`)
@@ -130,6 +227,8 @@ const removeJsonFile = async (folder_name: string, file_name: string) => {
 export const StorageService = {
     readFromJson,
     saveInJson,
+    updateInJson,
+    removeInJson,
     saveData,
     readFromJsonAsObject,
     removeJsonFile,
