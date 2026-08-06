@@ -108,44 +108,44 @@ const dropDownList2 = (parent: any, currentIdValue: string): Promise<string> => 
 
 
 const b_dropdown = (edit_side_group: any, selectedBusId: any) => {
-   // 1. Define your typed array of structured objects
-    interface LanguageOption {
-      id: string;
-      name: string;
+  // 1. Define your typed array of structured objects
+  interface LanguageOption {
+    id: string;
+    name: string;
+  }
+
+  const languages: LanguageOption[] = [
+    { id: '1', name: 'JavaScript (Node.js)' },
+    { id: '2', name: 'TypeScript (Deno)' },
+    { id: '3', name: 'Python (PyGObject)' },
+    { id: '4', name: 'Native C++' }
+  ];
+
+  // 2. Extract only the human-readable 'name' strings for the visual model
+  const displayNames = languages.map(lang => lang.name);
+  const stringList = Gtk.StringList.new(displayNames);
+
+  // 3. Initialize your Dropdown Row
+  const comboRow = new Adw.ComboRow();
+  edit_side_group.add(comboRow)
+  comboRow.setTitle('Preferred Runtime');
+  comboRow.setModel(stringList);
+
+  // 4. Safely pull data on change using the native index
+  comboRow.on('notify::selected', () => {
+    const selectedIndex = comboRow.getSelected();
+
+    // Bounds check protection 
+    if (selectedIndex >= 0 && selectedIndex < languages.length) {
+      const selectedData = languages[selectedIndex];
+
+      // Zero type errors, direct structural access
+      console.log(`Saved Database ID: ${selectedData.id}`);
+      console.log(`Display Text Value: ${selectedData.name}`);
+
+      selectedBusId = selectedData.id
     }
-
-    const languages: LanguageOption[] = [
-      { id: '1', name: 'JavaScript (Node.js)' },
-      { id: '2', name: 'TypeScript (Deno)' },
-      { id: '3', name: 'Python (PyGObject)' },
-      { id: '4', name: 'Native C++' }
-    ];
-
-    // 2. Extract only the human-readable 'name' strings for the visual model
-    const displayNames = languages.map(lang => lang.name);
-    const stringList = Gtk.StringList.new(displayNames);
-
-    // 3. Initialize your Dropdown Row
-    const comboRow = new Adw.ComboRow();
-    edit_side_group.add(comboRow)
-    comboRow.setTitle('Preferred Runtime');
-    comboRow.setModel(stringList);
-
-    // 4. Safely pull data on change using the native index
-    comboRow.on('notify::selected', () => {
-      const selectedIndex = comboRow.getSelected();
-
-      // Bounds check protection 
-      if (selectedIndex >= 0 && selectedIndex < languages.length) {
-        const selectedData = languages[selectedIndex];
-
-        // Zero type errors, direct structural access
-        console.log(`Saved Database ID: ${selectedData.id}`);
-        console.log(`Display Text Value: ${selectedData.name}`);
-
-        selectedBusId = selectedData.id
-      }
-    });
+  });
 }
 export class TripsComponent {
 
@@ -163,6 +163,8 @@ export class TripsComponent {
   bus_service: BusService
   selectedBusId: string = ""
   currentStatusValue: string = ""
+
+  
 
   constructor(app: any) {
     this.app = app
@@ -217,41 +219,81 @@ export class TripsComponent {
 
 
     // 1. Define your typed array of structured objects
-   
 
-   
+
+
 
     const bus_list: BUS[] = await this.bus_service.getAll()
-    
-    console.log("bus_list:", bus_list)
+
+    //console.log("bus_list:", bus_list)
 
     this.selectedBusId = bus_list[0].id!!
 
-    // 2. Extract only the human-readable 'name' strings for the visual model
-    const displayNames = bus_list.map(m => m.bus_number!!.toString());
-    const stringList = Gtk.StringList.new(displayNames!!);
 
-    // 3. Initialize your Dropdown Row
-    const comboRow = new Adw.ComboRow();
-    edit_side_group.add(comboRow)
-    comboRow.setTitle('Preferred Runtime');
-    comboRow.setModel(stringList);
+    // Handle fallback if database returns an empty payload array
+    if (bus_list && bus_list.length > 0) {
 
-    // 4. Safely pull data on change using the native index
-    comboRow.on('notify::selected', () => {
-      const selectedIndex = comboRow.getSelected();
+      // Set fallback baseline ID
+      this.selectedBusId = bus_list[0].id!!;
 
-      // Bounds check protection 
-      if (selectedIndex >= 0 && selectedIndex < bus_list.length) {
-        const selectedData = bus_list[selectedIndex];
+      // 2. Extract only the human-readable 'name' strings for the visual model
+      const displayNames = bus_list.map(m => m.bus_number!!.toString());
+      const stringList = Gtk.StringList.new(displayNames);
 
-        // Zero type errors, direct structural access
-        console.log(`Saved Database ID: ${selectedData.id}`);
-        console.log(`Display Text Value: ${selectedData.bus_number}`);
+      // 3. Initialize your Dropdown Row
+      const comboRow = new Adw.ComboRow();
+      comboRow.setTitle('Select Bus'); // Fixed title context
+      comboRow.setModel(stringList);
+      edit_side_group.add(comboRow);
 
-        this.selectedBusId = selectedData.id!!
+      // 4. Update the internal component state whenever the user alters the selection
+     /* comboRow.on('notify::selected', () => {
+        const selectedIndex = comboRow.getSelected();
+        if (selectedIndex >= 0 && selectedIndex < bus_list.length) {
+          this.selectedBusId = bus_list[selectedIndex].id!!;
+          console.log(`State updated! Current selectedBusId: ${this.selectedBusId}`);
+        }
+      });*/
+
+      // 4. Safely pull data on change using the native index
+      comboRow.on('notify::selected', () => {
+        const selectedIndex = comboRow.getSelected();
+
+        // Bounds check protection 
+        if (selectedIndex >= 0 && selectedIndex < bus_list.length) {
+          const selectedData = bus_list[selectedIndex];
+
+          // Zero type errors, direct structural access
+          console.log(`Saved Database ID: ${selectedData.id}`);
+          console.log(`Display Text Value: ${selectedData.bus_number}`);
+
+          this.selectedBusId = selectedData.id!!
+        }
+      });
+
+      console.log("---------------------------this.selected_trip:", this.selected_trip);
+
+      // 5. Look up the index match 
+      if (this.selected_trip) {
+        const defaultIndex = bus_list.findIndex(item => item.id === this.selected_trip?.bus_id);
+        console.log("---------------------------defaultIndex:", defaultIndex);
+
+        if (defaultIndex !== -1) {
+          // CRITICAL FIX: Push the selection code to the next GLib main loop tick.
+          // This prevents GTK from dropping the selection value during layout init.
+          GLib.timeoutAdd(GLib.PRIORITY_DEFAULT, 1, () => {
+            comboRow.setSelected(defaultIndex);
+            // Also align your internal state variable instantly
+            this.selectedBusId = bus_list[defaultIndex].id!!;
+            return GLib.SOURCE_REMOVE; // Tells GLib not to repeat this callback loop
+          });
+        }
       }
-    });
+    }
+
+
+
+
 
 
     // dropdown-list status
@@ -262,7 +304,7 @@ export class TripsComponent {
 
     this.currentStatusValue = options[0]
 
-    
+
 
     // 2. Instantiate the ComboRow
     const comboRow2 = new Adw.ComboRow();
@@ -270,6 +312,8 @@ export class TripsComponent {
     comboRow2.setTitle('Primary Language');
     comboRow2.setSubtitle('Select your favorite stack');
     comboRow2.setModel(stringList2); // Map the data model to the Adw row
+    //comboRow2.setData("waiting", "waiting")
+
 
     // 3. Optional: Enable search filter tracking within the row overlay popup
     comboRow2.setEnableSearch(true);
@@ -354,16 +398,16 @@ export class TripsComponent {
 
         }
 
-        
 
 
-        if (this.isEdit) {
+
+        if (this.isEdit && this.selected_trip) {
           //obj.id = this.selected_trip?.id
-          console.log("submit_btn trip edit:", obj)
+          console.log("submit_btn trip edit:", obj, this.selected_trip)
         } else {
           obj.bus_id = this.selectedBusId
           console.log("submit_btn trip create: ", obj)
-          this.trip_service.create(obj) 
+          this.trip_service.create(obj)
         }
 
       }
@@ -484,24 +528,24 @@ export class TripsComponent {
     row.addSuffix(icon_suffix)
     row.connect("activated", () => {
       //this.app.clear_right_sidebar()
-      //this.selected_trip = item
+      this.selected_trip = item
       if (isAdmin) {
         this.isEdit = true
-        side_title.setText(`Edit Trip ${item}`)
+        side_title.setText(`Edit Trip ${item.destination} - ${item.status}`)
         edit_side_group.setVisible(true)
         view_side_group.setVisible(false)
         //sideBox.setVisible(true)
-        /*if (this.selected_trip) {
-         this.input_status?.setText(this.selected_trip.status?.toString() ?? "");
-         this.input_available_seats?.setText(this.selected_trip.available_seats?.toString() ?? "");
-         this.input_departure?.setText(this.selected_trip.departure?.toString() ?? "");
-         this.input_destination?.setText(this.selected_trip.destination?.toString() ?? "");
-         //bus_id
-         //departure_time
-         //arrival_time
+        if (this.selected_trip) {
+          this.input_status?.setText(this.selected_trip.status?.toString() ?? "");
+          this.input_available_seats?.setText(this.selected_trip.available_seats?.toString() ?? "");
+          this.input_departure?.setText(this.selected_trip.departure?.toString() ?? "");
+          this.input_destination?.setText(this.selected_trip.destination?.toString() ?? "");
+          //bus_id
+          //departure_time
+          //arrival_time
 
-       }*/
-        this.input_status?.setText("test...");
+        }
+
       } else {
         this.isEdit = false
         side_title.setText(`Trip ${item}`)

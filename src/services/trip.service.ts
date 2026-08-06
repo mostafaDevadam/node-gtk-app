@@ -32,7 +32,7 @@ export class TripService {
 
     async getAll(): Promise<TRIP_TYPE[] | any[]> {
         const list = await StorageService.readFromJson("storage", "trips")!!
-        console.log("[TripService] getAll:", list)
+        //console.log("[TripService] getAll:", list)
         if (typeof (list) == 'undefined' || !list) {
             return []
         }

@@ -51,7 +51,7 @@ export class BusService {
 
     async getAll(): Promise<BUS[] | any[]> {
         const list = await StorageService.readFromJson("storage", "buses")!!
-        console.log("[BusService] get_all:", list)
+        //console.log("[BusService] get_all:", list)
         if (typeof (list) == 'undefined' || !list) {
             return []
         }
@@ -74,6 +74,6 @@ export class BusService {
 
     async remove(id: string){
         // if bus has trip then send notify to mitarbeiter
-        
+
     }
 }
