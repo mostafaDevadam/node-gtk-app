@@ -27,6 +27,28 @@ export class BusService {
         await StorageService.saveInJson("storage", "buses", bus)
     }
 
+    async update(id: string, data: BUS) {
+
+        data.updated_at = new Date().toISOString()
+        console.log("[BusService] update() :", id, data);
+
+        const one = await this.getById(data.id!!)
+        if (!one) {
+            console.log("cannot update bus because not found")
+            return
+        }
+
+
+        console.log("[BusService] update() one:", id, one);
+
+        await StorageService.updateInJson("storage", "buses", data)
+
+        await StorageService.removeInJson("storage", "buses", data.id)
+
+
+
+    }
+
     async getAll(): Promise<BUS[] | any[]> {
         const list = await StorageService.readFromJson("storage", "buses")!!
         console.log("[BusService] get_all:", list)
@@ -48,5 +70,10 @@ export class BusService {
         }
 
         return one
+    }
+
+    async remove(id: string){
+        // if bus has trip then send notify to mitarbeiter
+        
     }
 }
