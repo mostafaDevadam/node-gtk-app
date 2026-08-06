@@ -59,6 +59,7 @@ export class BusesComponent {
     const edit_side_group = new Adw.PreferencesGroup({ visible: false })
     sideBox.append(edit_side_group)
     // inputs
+
     this.input_bus_number = new Adw.EntryRow({
       title: "Bus Number",
       inputPurpose: Gtk.InputPurpose.NUMBER,
@@ -72,6 +73,8 @@ export class BusesComponent {
     })
     edit_side_group.add(this.input_capacity)
 
+    // dropdown-list bus_type
+    
     this.input_bus_type = new Adw.EntryRow({
       title: "Bus Type",
       inputPurpose: Gtk.InputPurpose.NAME,
