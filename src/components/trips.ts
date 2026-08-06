@@ -404,11 +404,17 @@ export class TripsComponent {
         }
 
 
-
-
         if (this.isEdit && this.selected_trip) {
-          //obj.id = this.selected_trip?.id
+          obj.id = this.selected_trip?.id
+          obj.bus_id = this.selectedBusId ?? this.selected_trip.bus_id
+          obj.created_at = this.selected_trip.created_at
+          obj.arrival_time = this.arrival_time.input_time ?? this.selected_trip.arrival_time
+          obj.departure_time = this.departure_time.input_time ?? this.selected_trip.departure_time
+
+
+
           console.log("submit_btn trip edit:", obj, this.selected_trip)
+          this.trip_service.update(obj.id!!, obj)
         } else {
           obj.bus_id = this.selectedBusId
           console.log("submit_btn trip create: ", obj)
