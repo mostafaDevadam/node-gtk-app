@@ -59,14 +59,69 @@ export class BusesComponent {
     const edit_side_group = new Adw.PreferencesGroup({ visible: false })
     sideBox.append(edit_side_group)
     // inputs
-    // phone
-    /*const input_name = new Adw.EntryRow({
-      title: "Name",
-      inputPurpose: Gtk.InputPurpose.NAME,
-      editable: isAdmin
-      //marginTop: 20,
+    this.input_bus_number = new Adw.EntryRow({
+      title: "Bus Number",
+      inputPurpose: Gtk.InputPurpose.NUMBER,
     })
-    edit_side_group.add(input_name)*/
+    edit_side_group.add(this.input_bus_number)
+
+    this.input_capacity = new Adw.EntryRow({
+      title: "Capacity",
+      inputPurpose: Gtk.InputPurpose.NUMBER,
+
+    })
+    edit_side_group.add(this.input_capacity)
+
+    this.input_bus_type = new Adw.EntryRow({
+      title: "Bus Type",
+      inputPurpose: Gtk.InputPurpose.NAME,
+
+    })
+    edit_side_group.add(this.input_bus_type)
+
+    this.input_chair_count = new Adw.EntryRow({
+      title: "Chair Count",
+      inputPurpose: Gtk.InputPurpose.NUMBER,
+
+    })
+    edit_side_group.add(this.input_chair_count)
+
+    this.submit_btn = new Adw.ActionRow({
+      title: "save",
+      halign: Gtk.Align.CENTER,
+      activatable: true,
+      visible: isAdmin,
+    })
+    edit_side_group.add(this.submit_btn)
+
+    this.submit_btn.on("activated", () => {
+
+
+        const obj: BUS = {
+          id: "",
+          bus_number: parseInt(this.input_bus_number.getText()),
+          capacity: parseInt(this.input_capacity.getText()),
+          bus_type: this.input_bus_type.getText(),
+          chair_count: parseInt(this.input_chair_count.getText()),
+          created_at: "",
+          updated_at: ""
+
+        }
+       
+
+        if(this.isEdit && this.selected_bus){
+             obj.id = this.selected_bus.id
+             obj.created_at = this.selected_bus.created_at
+             console.log("submit_btn - activated - isEdit:", this.isEdit, this.selected_bus, obj) 
+             this.bus_service.update(obj.id!!, obj)
+        }else{
+              console.log("submit_btn - activated: - create", this.isEdit, obj)
+              this.bus_service.create(obj)    
+        }
+    
+      })
+    
+   
 
     //if (!this.isEdit)
     //  this.build_form(edit_side_group, isAdmin, this.isEdit)
@@ -89,7 +144,8 @@ export class BusesComponent {
         this.selected_bus = null
         this.isEdit = false
         side_title.setText("Add Bus")
-        this.build_form(edit_side_group, isAdmin, this.isEdit)
+        //this.build_form(edit_side_group, isAdmin, this.isEdit)
+        this.clearInputs()
         edit_side_group.setVisible(true)
         sideBox.setVisible(true)
       })
@@ -132,6 +188,11 @@ export class BusesComponent {
       parent.remove(child)
       child = next
     }
+
+    parent.setVisible(true)
+
+
+    /*
 
     if (!this.input_bus_number) {
       // bus_number
@@ -190,6 +251,7 @@ export class BusesComponent {
       })
       parent.add(this.input_chair_count)
     }
+    */
 
 
 
@@ -238,18 +300,21 @@ export class BusesComponent {
 
     // 
     if (!this.submit_btn) {
+      console.log("submit_btn")
       // submit_btn
-      this.submit_btn = new Adw.ActionRow({
+      /*this.submit_btn = new Adw.ActionRow({
         title: "save",
         halign: Gtk.Align.CENTER,
         activatable: true,
         visible: isAdmin,
       })
-      parent.add(this.submit_btn)
+      parent.add(this.submit_btn)*/
 
       this.submit_btn.on("activated", () => {
+        console.log("submit_btn activated")
 
         const obj: BUS = {
+          id: this.selected_bus?.id ?? "",
           bus_number: parseInt(this.input_bus_number.getText()),
           capacity: parseInt(this.input_capacity.getText()),
           bus_type: this.input_bus_type.getText(),
@@ -259,10 +324,16 @@ export class BusesComponent {
 
         console.log("submit bus:", obj)
 
-        this.bus_service.create(obj)
+        if (this.isEdit && this.selected_bus) {
+          this.bus_service.update(this.selected_bus.id!!, obj)
+        } else if (!this.isEdit && this.selected_bus) {
+          this.bus_service.create(obj)
+        }
+
+
 
       })
-    }
+   }
 
   }
 
@@ -320,6 +391,13 @@ export class BusesComponent {
     })
     listBox.append(row)
 
+  }
+
+  clearInputs(){
+        this.input_bus_number?.setText("");
+        this.input_bus_type?.setText("");
+        this.input_capacity?.setText("");
+        this.input_chair_count?.setText("");
   }
 
 }
