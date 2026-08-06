@@ -154,7 +154,7 @@ export class TripsComponent {
   departure_time: InputDateTime
   input_departure: any
   input_destination: any
-  input_status: any
+
   input_available_seats: any
   submit_btn: any
   isEdit: boolean = false
@@ -163,9 +163,11 @@ export class TripsComponent {
   bus_service: BusService
   selectedBusId: string = ""
   currentStatusValue: string = ""
-  bus_list: BUS[] = []; 
-  comboRow: any
+  bus_list: BUS[] = [];
+  comboRow_bus: any
   displayNames: string[] = []
+  comboRow_status: any
+  status_list: string[] = ['pending', 'waiting', 'processing', 'finished']
 
 
   constructor(app: any) {
@@ -174,13 +176,14 @@ export class TripsComponent {
     this.departure_time = new InputDateTime()
     this.trip_service = new TripService()
     this.bus_service = new BusService()
-    
+
   }
 
   async build_trips_view() {
     const isAdmin = this.app.active_user_role === UserRole.admin || this.app.active_user_role === "admin";
 
-    this.comboRow = new Adw.ComboRow();
+    this.comboRow_bus = new Adw.ComboRow();
+    this.comboRow_status = new Adw.ComboRow()
 
 
     const box = new Gtk.Box({
@@ -247,22 +250,23 @@ export class TripsComponent {
 
       // 3. Initialize your Dropdown Row
       //const comboRow = new Adw.ComboRow();
-      this.comboRow.setTitle('Select Bus'); // Fixed title context
-      this.comboRow.setModel(stringList);
-      edit_side_group.add(this.comboRow);
+      this.comboRow_bus.setTitle('Bus');
+      this.comboRow_bus.setSubtitle('Select bus');
+      this.comboRow_bus.setModel(stringList);
+      edit_side_group.add(this.comboRow_bus);
 
       // 4. Update the internal component state whenever the user alters the selection
-     /* comboRow.on('notify::selected', () => {
-        const selectedIndex = comboRow.getSelected();
-        if (selectedIndex >= 0 && selectedIndex < bus_list.length) {
-          this.selectedBusId = bus_list[selectedIndex].id!!;
-          console.log(`State updated! Current selectedBusId: ${this.selectedBusId}`);
-        }
-      });*/
+      /* comboRow.on('notify::selected', () => {
+         const selectedIndex = comboRow.getSelected();
+         if (selectedIndex >= 0 && selectedIndex < bus_list.length) {
+           this.selectedBusId = bus_list[selectedIndex].id!!;
+           console.log(`State updated! Current selectedBusId: ${this.selectedBusId}`);
+         }
+       });*/
 
       // 4. Safely pull data on change using the native index
-      this.comboRow.on('notify::selected', () => {
-        const selectedIndex = this.comboRow.getSelected();
+      this.comboRow_bus.on('notify::selected', () => {
+        const selectedIndex = this.comboRow_bus.getSelected();
 
         // Bounds check protection 
         if (selectedIndex >= 0 && selectedIndex < this.bus_list.length) {
@@ -286,12 +290,12 @@ export class TripsComponent {
         if (defaultIndex !== -1) {
           // CRITICAL FIX: Push the selection code to the next GLib main loop tick.
           // This prevents GTK from dropping the selection value during layout init.
-         /* GLib.timeoutAdd(GLib.PRIORITY_DEFAULT, 1, () => {
-            this.comboRow.setSelected(defaultIndex);
-            // Also align your internal state variable instantly
-            this.selectedBusId = this.bus_list[defaultIndex].id!!;
-            return GLib.SOURCE_REMOVE; // Tells GLib not to repeat this callback loop
-          });*/
+          /* GLib.timeoutAdd(GLib.PRIORITY_DEFAULT, 1, () => {
+             this.comboRow.setSelected(defaultIndex);
+             // Also align your internal state variable instantly
+             this.selectedBusId = this.bus_list[defaultIndex].id!!;
+             return GLib.SOURCE_REMOVE; // Tells GLib not to repeat this callback loop
+           });*/
         }
       }
     }
@@ -304,31 +308,31 @@ export class TripsComponent {
     // dropdown-list status
     //this.currentStatusValue = await dropDownList(edit_side_group, this.currentStatusValue);
     // 1. Create a Gtk.StringList model for your items
-    const options = ['pending', 'waiting', 'processing', 'finished'];
-    const stringList2 = Gtk.StringList.new(options);
+    //const options = ['pending', 'waiting', 'processing', 'finished'];
+    const stringList2 = Gtk.StringList.new(this.status_list);
 
-    this.currentStatusValue = options[0]
+    this.currentStatusValue = this.status_list[0]
 
 
 
     // 2. Instantiate the ComboRow
-    const comboRow2 = new Adw.ComboRow();
-    edit_side_group.add(comboRow2)
-    comboRow2.setTitle('Primary Language');
-    comboRow2.setSubtitle('Select your favorite stack');
-    comboRow2.setModel(stringList2); // Map the data model to the Adw row
+    //const comboRow2 = new Adw.ComboRow();
+    edit_side_group.add(this.comboRow_status)
+    this.comboRow_status.setTitle('Status');
+    this.comboRow_status.setSubtitle('Select status');
+    this.comboRow_status.setModel(stringList2); // Map the data model to the Adw row
     //comboRow2.setData("waiting", "waiting")
 
 
     // 3. Optional: Enable search filter tracking within the row overlay popup
-    comboRow2.setEnableSearch(true);
+    this.comboRow_status.setEnableSearch(true);
 
     // 4. Capture selection updates using property notification signatures
-    comboRow2.on('notify::selected', () => {
-      const selectedIndex = comboRow2.getSelected();
+    this.comboRow_status.on('notify::selected', () => {
+      const selectedIndex = this.comboRow_status.getSelected();
 
       // Extract the StringObject wrapper safely
-      const selectedItem = comboRow2.getSelectedItem()!!
+      const selectedItem = this.comboRow_status.getSelectedItem()!!
 
       if (selectedItem) {
         // Assert the generic object as a Gtk.StringObject
@@ -365,11 +369,7 @@ export class TripsComponent {
     })
     edit_side_group.add(this.input_destination)
 
-    this.input_status = new Adw.EntryRow({
-      title: "Status",
-      inputPurpose: Gtk.InputPurpose.NAME,
-    })
-    edit_side_group.add(this.input_status)
+
 
     this.input_available_seats = new Adw.EntryRow({
       title: "Available Seats",
@@ -493,7 +493,7 @@ export class TripsComponent {
 
     if (isAdmin) {
 
-      this.input_status.setEditable(isAdmin);
+
       this.input_available_seats.setEditable(isAdmin);
       this.input_departure.setEditable(isAdmin);
       this.input_destination.setEditable(isAdmin);
@@ -541,7 +541,7 @@ export class TripsComponent {
         view_side_group.setVisible(false)
         //sideBox.setVisible(true)
         if (this.selected_trip) {
-          this.input_status?.setText(this.selected_trip.status?.toString() ?? "");
+
           this.input_available_seats?.setText(this.selected_trip.available_seats?.toString() ?? "");
           this.input_departure?.setText(this.selected_trip.departure?.toString() ?? "");
           this.input_destination?.setText(this.selected_trip.destination?.toString() ?? "");
@@ -550,7 +550,13 @@ export class TripsComponent {
           //arrival_time
           const l1 = this.bus_list.findIndex(fl => fl.id == item.bus_id)
           //console.log("################# l1:", l1, this.bus_list[l1], this.displayNames[l1])
-          this.comboRow.setSelected(l1);
+          this.comboRow_bus.setSelected(l1);
+          //
+          this.arrival_time.setDefaultValue(item.arrival_time!!)
+          this.departure_time.setDefaultValue(item.departure_time!!)
+          //
+          const k1 = this.status_list.findIndex(fl => fl == item.status)
+          this.comboRow_status.setSelected(k1)
 
         }
 
@@ -570,10 +576,14 @@ export class TripsComponent {
 
 
   clearInputs() {
-    this.input_status?.setText("");
+
     this.input_available_seats?.setText("");
     this.input_departure?.setText("");
     this.input_destination?.setText("");
+    this.arrival_time.setDefaultValue("")
+    this.departure_time.setDefaultValue("")
+    this.comboRow_status.setSelected(0)
+     this.comboRow_bus.setSelected(0);
   }
 
 
