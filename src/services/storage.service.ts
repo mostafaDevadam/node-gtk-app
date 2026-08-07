@@ -142,9 +142,11 @@ const updateInJson = async (folder_name: string, file_name: string, data: any) =
            
          await writeFile(file_path, JSON.stringify(currentData, null, 2), 'utf-8')
       
-         //console.log("Success saved data in json file: ", currentData.length)
+         console.log("Success updated data in json file: ", currentData.length)
+         return true
         } catch (error) {
         console.error("Failed to write file")
+        return false
       }
 
 }

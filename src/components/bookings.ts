@@ -180,28 +180,28 @@ export class BookingsComponent {
         address: this.input_address.getText(),
       }
       console.log("this.submit_btn_cust:", obj)
-      if(this.isEdit && this.selectedBooking?.customer){
+      if (this.isEdit && this.selectedBooking?.customer) {
 
         console.log("edit customer")
         obj.id = this.selectedBooking.customer.id
         this.customerService.update(obj.id!!, obj)
 
-      }else {
-         // create customer
-      const customer = await this.customerService.create(obj)
-      console.log("new-customer:", customer);
-      if (!customer) {
-        this.app.showToast("phone is already existing!")
-        return
-      }
-      this.app.showToast("created a new customer successfully!")
-      //
-      this.customerId = customer.id!!
+      } else {
+        // create customer
+        const customer = await this.customerService.create(obj)
+        console.log("new-customer:", customer);
+        if (!customer) {
+          this.app.showToast("phone is already existing!")
+          return
+        }
+        this.app.showToast("created a new customer successfully!")
+        //
+        this.customerId = customer.id!!
 
-      console.log("userId:", this.userId, this.app.active_user);
+        console.log("userId:", this.userId, this.app.active_user);
 
       }
-     
+
 
       //
 
@@ -383,51 +383,80 @@ export class BookingsComponent {
 
 
     this.submit_booking_btn.on("activated", async () => {
-      if (!this.customerId || !this.userId) {
-        console.log("Cannot create booking because no customerId or userId")
-        return
-      }
 
-      const obj: BOOKING_TYPE = {
-        customer_id: this.customerId,
-        user_id: this.userId,
-        trip_id: this.selectedTripId,
-        booking_date: this.booking_date.input_time,
-        price: this.input_price.getText(),
-        seat_number: this.input_seat_number.getText(),
-        payment_status: this.currentPaymentStatusValue,
-        status: this.currentBookingStatusValue,
-        created_at: "",
-        updated_at: ""
-      }
 
-      console.log("this.submit_booking_btn:", obj)
-      if(this.isEdit && this.selectedBooking){
 
-        obj.id = this.selectedBooking.id
-        //obj.user_id = this.userId
-        obj.customer_id = this.selectedBooking.customer_id
-        //obj
+
+
+      if (this.isEdit && this.selectedBooking) {
+
+        const obj: BOOKING_TYPE = {
+          id: this.selectedBooking.id,
+          customer_id: this.selectedBooking.customer_id,
+          user_id: this.userId ?? this.selectedBooking.user_id,
+          trip_id: this.selectedTripId ?? this.selectedBooking.trip_id,
+          booking_date: this.booking_date.input_time ?? this.selectedBooking.booking_date,
+          price: this.input_price.getText() ?? this.selectedBooking.price,
+          seat_number: this.input_seat_number.getText() ?? this.selectedBooking.seat_number,
+          payment_status: this.currentPaymentStatusValue ?? this.selectedBooking.payment_status,
+          status: this.currentBookingStatusValue ?? this.selectedBooking.status,
+          created_at: this.selectedBooking.created_at,
+          updated_at: ""
+        }
+        console.log("this.submit_booking_btn edit booking:", obj)
+
+
+
+
+
 
         console.log("edit booking")
-        this.bookingService.update(this.selectedBooking.id!!, obj)
-        
+        const result = this.bookingService.update(obj.id!!, obj)
+        if (!result) {
+          this.app.showToast("Cannot Update booking!")
+          return
+        }
+
+        this.app.showToast("Updated booking successfully!")
 
 
 
-      }else { 
-      // create booking
-      const result = await this.bookingService.create(obj)
-      console.log("success created a new booking:", result)
 
-      //
-      if (!result) {
-        this.app.showToast("Cannot create a new booking!")
+      } else {
+        // create booking
+
+        if (!this.customerId || !this.userId) {
+          console.log("Cannot create booking because no customerId or userId")
+          return
+        }
+
+        const obj: BOOKING_TYPE = {
+          customer_id: this.customerId,
+          user_id: this.userId,
+          trip_id: this.selectedTripId,
+          booking_date: this.booking_date.input_time,
+          price: this.input_price.getText(),
+          seat_number: this.input_seat_number.getText(),
+          payment_status: this.currentPaymentStatusValue,
+          status: this.currentBookingStatusValue,
+          created_at: "",
+          updated_at: ""
+        }
+
+        console.log("this.submit_booking_btn create booking:", obj)
+
+        const result = await this.bookingService.create(obj)
+        console.log("success created a new booking:", result)
+
+        //
+        if (!result) {
+          this.app.showToast("Cannot create a new booking!")
+          return
+        }
+
+        this.app.showToast("Created a new booking successfully!")
+
       }
-
-      this.app.showToast("Created a new booking successfully!")
-
-    }
 
 
 
@@ -494,24 +523,28 @@ export class BookingsComponent {
     const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
     row.addSuffix(icon_suffix)
     row.connect("activated", async () => {
-      console.log("selected booking:", item)
+
       this.isEdit = true
       this.selectedBooking = item
 
-     this.selectedBooking.customer = await this.customerService.getById(item.customer_id)
+
+
+      this.selectedBooking.customer = await this.customerService.getById(item.customer_id)
+
+      console.log("selected booking:", item, this.selectedBooking)
 
 
 
       side_title.setText(`Edit booking ${item.booking_number}`)
       this.clearInputs()
 
-      if (this.selectedBooking) {
+      if (this.selectedBooking && this.isEdit) {
         // customer
         if (this.selectedBooking.customer) {
-            this.input_cust_name.setText(this.selectedBooking.customer.name ?? "");
-            this.input_phone.setText(this.selectedBooking.customer.phone ?? "");
-            this.input_email.setText(this.selectedBooking.customer.email ?? "");
-            this.input_address.setText(this.selectedBooking.customer.address ?? "");
+          this.input_cust_name.setText(this.selectedBooking.customer.name ?? "");
+          this.input_phone.setText(this.selectedBooking.customer.phone ?? "");
+          this.input_email.setText(this.selectedBooking.customer.email ?? "");
+          this.input_address.setText(this.selectedBooking.customer.address ?? "");
 
         }
 
