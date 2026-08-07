@@ -56,6 +56,7 @@ export type BOOKING_TYPE = {
    trip_id: string
    customer_id: string
    user_id: string
+   booking_number?: string
    seat_number?: string
    booking_date?: string
    status?: string
@@ -63,4 +64,6 @@ export type BOOKING_TYPE = {
    payment_status?: string
    created_at?: string
    updated_at?: string
+
+   customer?: CUSTOMER_TYPE
 }

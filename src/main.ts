@@ -122,13 +122,6 @@ class App extends Adw.Application {
       this.audit_logs_comp = new AuditLogsComponent(this)
       this.settings_comp = new SettingsComponent(this)
 
-      
-
-     
-
-
-
-
 
       // 1. Run initialization tasks first (like loading translations)
       this.on('startup', async () => {

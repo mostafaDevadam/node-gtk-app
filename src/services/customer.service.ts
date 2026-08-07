@@ -14,11 +14,19 @@ import { v4 as uuidv4 } from 'uuid';
 import { StorageService } from "./storage.service.js";
 export class CustomerService implements IService<CUSTOMER_TYPE> {
 
-    
 
 
-    async create(data: CUSTOMER_TYPE): Promise<CUSTOMER_TYPE> {
+
+    async create(data: CUSTOMER_TYPE): Promise<CUSTOMER_TYPE | any> {
         console.log("[CustomerService] create data:", data);
+
+        // check if phone is  existing then return else create customer
+        const p: CUSTOMER_TYPE = await this.getByPhone(data.phone!!)
+        if (p.id) {
+            console.log("cannot create customer because phone is already exisitng")
+            return false
+        }
+
 
         const customer: CUSTOMER_TYPE = {
             ...data,
@@ -43,19 +51,19 @@ export class CustomerService implements IService<CUSTOMER_TYPE> {
         console.log("[TripService] update() one:", id, one);
 
         await StorageService.updateInJson("storage", "trips", data)
-       
+
     }
-    async getAll(): Promise<CUSTOMER_TYPE[] | any[]>  {
-         const list = await StorageService.readFromJson("storage", "customers")!!
+    async getAll(): Promise<CUSTOMER_TYPE[] | any[]> {
+        const list = await StorageService.readFromJson("storage", "customers")!!
         //console.log("[TripService] getAll:", list)
         if (typeof (list) == 'undefined' || !list) {
             return []
         }
         return list as CUSTOMER_TYPE[]
-        
+
     }
     async getById(id: string) {
-         const all = await this.getAll()
+        const all = await this.getAll()
 
         const one = all.filter((fl) => fl.id === id)[0]
 
@@ -65,10 +73,26 @@ export class CustomerService implements IService<CUSTOMER_TYPE> {
         }
 
         return one
-        
+
     }
     remove(): void {
-        
+
+    }
+
+    private async getByPhone(phone: string) {
+
+        const all = await this.getAll()
+
+        const one = all.filter((fl) => fl.phone === phone)[0]
+
+        if (!one) {
+            console.log("customer by phone is not found!")
+            return {}
+        }
+
+        return one
+
+
     }
 
 

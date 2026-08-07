@@ -3,7 +3,7 @@ import { Adw, GLib, Gio, Gtk } from '../index.js'
 import { BookingService } from '../services/booking.service.js'
 import { CustomerService } from '../services/customer.service.js'
 import { TripService } from '../services/trip.service.js'
-import { BOOKING_TYPE, TRIP_TYPE } from '../types.js'
+import { BOOKING_TYPE, CUSTOMER_TYPE, TRIP_TYPE } from '../types.js'
 import { InputDateTime } from './forms/input-date-time.js'
 
 
@@ -22,7 +22,7 @@ export class BookingsComponent {
   input_status: any
   input_price: any
   //input_payment_status: any
-  submit_btn: any
+  submit_booking_btn: any
   // booking-status
   comboRow_booking_status: any
   booking_status_list: string[] = ['pending', 'waiting', 'processing', 'finished']
@@ -41,6 +41,8 @@ export class BookingsComponent {
 
   selectedTripId: string = ""
 
+  customerId: string = ""
+
 
 
   //
@@ -51,9 +53,13 @@ export class BookingsComponent {
   customerService: CustomerService
   bookingService: BookingService
   //
+  userId: string = ""
+
+  isEdit: boolean = false
 
   constructor(app: any) {
     this.app = app
+    //this.userId = this.app.active_user.id
     this.booking_date = new InputDateTime()
     this.tripService = new TripService()
     this.customerService = new CustomerService()
@@ -65,6 +71,10 @@ export class BookingsComponent {
     this.comboRow_booking_status = new Adw.ComboRow()
     this.comboRow_payment_status = new Adw.ComboRow()
     this.comboRow_trips = new Adw.ComboRow()
+
+    this.userId = this.app.active_user.id
+
+    console.log("userId#:", this.userId, this.app.active_user);
 
     const box = new Gtk.Box({
       orientation: Gtk.Orientation.VERTICAL,
@@ -86,9 +96,36 @@ export class BookingsComponent {
       marginBottom: 12,
       marginStart: 12,
       marginEnd: 12,
-      visible: false,
-    })
-    this.app.right_sidebar.append(sideBox)
+      visible: false, // Can be toggled later via sideBox.setVisible(true)
+    });
+
+    const contentBox = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 12,
+      marginTop: 20,
+      marginBottom: 24,
+      marginStart: 24,
+      marginEnd: 24,
+    });
+
+    // Nest sideBox inside contentBox
+    contentBox.append(sideBox);
+
+    const scrollWin = new Gtk.ScrolledWindow({
+      // Optional: scroll_win.setPolicy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+      vexpand: true, // Crucial for letting it expand and scroll inside ToolbarView
+      hscrollbarPolicy: Gtk.PolicyType.NEVER,
+      vscrollbarPolicy: Gtk.PolicyType.AUTOMATIC,
+    });
+    scrollWin.setChild(contentBox);
+
+    const wrapper = new Adw.ToolbarView();
+    wrapper.setContent(scrollWin);
+
+    // Attach to your application's window layout target
+    this.app.right_sidebar.append(wrapper);
+
+
     const side_title = new Gtk.Label()
     sideBox.append(side_title)
 
@@ -135,6 +172,45 @@ export class BookingsComponent {
     })
     side_group_customer.add(this.submit_btn_cust)
 
+    this.submit_btn_cust.on("activated", async () => {
+      const obj: CUSTOMER_TYPE = {
+        name: this.input_cust_name.getText(),
+        phone: this.input_phone.getText(),
+        email: this.input_email.getText(),
+        address: this.input_address.getText(),
+      }
+      console.log("this.submit_btn_cust:", obj)
+      if(this.isEdit && this.selectedBooking?.customer){
+
+        console.log("edit customer")
+        obj.id = this.selectedBooking.customer.id
+        this.customerService.update(obj.id!!, obj)
+
+      }else {
+         // create customer
+      const customer = await this.customerService.create(obj)
+      console.log("new-customer:", customer);
+      if (!customer) {
+        this.app.showToast("phone is already existing!")
+        return
+      }
+      this.app.showToast("created a new customer successfully!")
+      //
+      this.customerId = customer.id!!
+
+      console.log("userId:", this.userId, this.app.active_user);
+
+      }
+     
+
+      //
+
+
+
+
+
+    })
+
 
     // booking-form
     const side_group_booking = new Adw.PreferencesGroup()
@@ -155,8 +231,8 @@ export class BookingsComponent {
 
       // 3. Initialize your Dropdown Row
       //const comboRow = new Adw.ComboRow();
-      this.comboRow_trips.setTitle('Bus');
-      this.comboRow_trips.setSubtitle('Select bus');
+      this.comboRow_trips.setTitle('Trip');
+      this.comboRow_trips.setSubtitle('Select trip');
       this.comboRow_trips.setModel(stringList);
       side_group_booking.add(this.comboRow_trips);
 
@@ -298,12 +374,66 @@ export class BookingsComponent {
 
     // 
     // submit_btn
-    this.submit_btn = new Adw.ActionRow({
+    this.submit_booking_btn = new Adw.ActionRow({
       title: "save",
       halign: Gtk.Align.CENTER,
       activatable: true,
     })
-    side_group_booking.add(this.submit_btn)
+    side_group_booking.add(this.submit_booking_btn)
+
+
+    this.submit_booking_btn.on("activated", async () => {
+      if (!this.customerId || !this.userId) {
+        console.log("Cannot create booking because no customerId or userId")
+        return
+      }
+
+      const obj: BOOKING_TYPE = {
+        customer_id: this.customerId,
+        user_id: this.userId,
+        trip_id: this.selectedTripId,
+        booking_date: this.booking_date.input_time,
+        price: this.input_price.getText(),
+        seat_number: this.input_seat_number.getText(),
+        payment_status: this.currentPaymentStatusValue,
+        status: this.currentBookingStatusValue,
+        created_at: "",
+        updated_at: ""
+      }
+
+      console.log("this.submit_booking_btn:", obj)
+      if(this.isEdit && this.selectedBooking){
+
+        obj.id = this.selectedBooking.id
+        //obj.user_id = this.userId
+        obj.customer_id = this.selectedBooking.customer_id
+        //obj
+
+        console.log("edit booking")
+        this.bookingService.update(this.selectedBooking.id!!, obj)
+        
+
+
+
+      }else { 
+      // create booking
+      const result = await this.bookingService.create(obj)
+      console.log("success created a new booking:", result)
+
+      //
+      if (!result) {
+        this.app.showToast("Cannot create a new booking!")
+      }
+
+      this.app.showToast("Created a new booking successfully!")
+
+    }
+
+
+
+
+
+    })
 
 
 
@@ -318,9 +448,11 @@ export class BookingsComponent {
     box.append(add_btn)
     add_btn.connect("clicked", () => {
       //this.app.clear_right_sidebar()
+      this.isEdit = false
       this.clearInputs()
       side_title.setText("Add Booking")
       sideBox.setVisible(true)
+      sideBox.queueResize()
 
 
     })
@@ -330,7 +462,13 @@ export class BookingsComponent {
     group.add(listBox)
     box.append(group)
 
-    for (let item of [1, 2, 3]) {
+    /*for (let item of [1, 2, 3]) {
+      this.build_card(item, side_title, sideBox, listBox)
+    }*/
+
+    const list = await this.bookingService.getAll()
+
+    for (let item of list) {
       this.build_card(item, side_title, sideBox, listBox)
     }
 
@@ -342,68 +480,60 @@ export class BookingsComponent {
   build_form(parent: any) {
 
 
-    /*
-    trip_id (FK)
-   customer_id(FK)
-   user_id (FK)
-   seat_number
-   booking_date
-   status
-   price
-   payment_status
-    */
-
-    // customer-form
-
-
-
-    /*
-    name
-    phone (unique) 
-    email
-    address
-    */
-    // seat_number 
-
-
-
-
-
-
-    // 
-    // submit_btn
-
 
   }
 
 
-  build_card(item: any, side_title: any, sideBox: any, listBox: any) {
+  build_card(item: BOOKING_TYPE, side_title: any, sideBox: any, listBox: any) {
     const row = new Adw.ActionRow()
-    row.setTitle(`Booking-${item}`)
+    row.setTitle(`Booking-${item.booking_number}-${item.status}`)
+    row.setSubtitle(item.booking_date!!)
     row.setActivatable(true)
     const icon_prefix = Gtk.Image.newFromIconName("emblem-documents")
     row.addPrefix(icon_prefix)
     const icon_suffix = Gtk.Image.newFromIconName("go-next-symbolic")
     row.addSuffix(icon_suffix)
-    row.connect("activated", () => {
-      side_title.setText(`Edit booking ${item}`)
+    row.connect("activated", async () => {
+      console.log("selected booking:", item)
+      this.isEdit = true
+      this.selectedBooking = item
+
+     this.selectedBooking.customer = await this.customerService.getById(item.customer_id)
+
+
+
+      side_title.setText(`Edit booking ${item.booking_number}`)
       this.clearInputs()
 
       if (this.selectedBooking) {
         // customer
-        //this.input_cust_name.setText(this.selectedBooking.customer.name ?? "");
-        /*this.input_phone.setText("");
-        this.input_email.setText("");
-        this.input_address.setText("");
+        if (this.selectedBooking.customer) {
+            this.input_cust_name.setText(this.selectedBooking.customer.name ?? "");
+            this.input_phone.setText(this.selectedBooking.customer.phone ?? "");
+            this.input_email.setText(this.selectedBooking.customer.email ?? "");
+            this.input_address.setText(this.selectedBooking.customer.address ?? "");
+
+        }
+
 
         // booking
 
         this.input_seat_number.setText(this.selectedBooking.seat_number ?? "");
         this.input_price.setText(this.selectedBooking.price ?? "");
 
-        this.booking_date.setDefaultValue(this.selectedBooking.booking_date!!)*/
-        //const l1 = this.trips_list.findIndex(fl => fl.id == item.)
-        //this.comboRow_trips.setSelected(l1);
+        this.booking_date.setDefaultValue(this.selectedBooking.booking_date!!)
+
+        const l1 = this.trips_list.findIndex(fl => fl.id == item.trip_id)
+        this.comboRow_trips.setSelected(l1);
+
+        const k1 = this.booking_status_list.findIndex(fl => fl == item.status)
+        this.comboRow_booking_status.setSelected(k1)
+
+        const p1 = this.payment_status_list.findIndex(fl => fl == item.payment_status)
+        this.comboRow_payment_status.setSelected(p1)
+
+
+
 
 
       }
@@ -414,8 +544,6 @@ export class BookingsComponent {
   }
 
   clearInputs() {
-
-
     this.input_cust_name.setText("");
     this.input_phone.setText("");
     this.input_email.setText("");
@@ -428,9 +556,6 @@ export class BookingsComponent {
 
     this.comboRow_booking_status.setSelected(0)
     this.comboRow_payment_status.setSelected(0)
-
-
-
 
   }
 

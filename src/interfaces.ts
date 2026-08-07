@@ -1,5 +1,3 @@
-
-
 export interface IService<T> {
     create(data: T): Promise<T | any>
     update(id: string, data: T): void
