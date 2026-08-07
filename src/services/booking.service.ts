@@ -12,3 +12,7 @@ created_at
 updated_at
 
 */
+
+export class BookingService {
+    
+}

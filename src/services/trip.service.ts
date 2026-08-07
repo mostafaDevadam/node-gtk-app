@@ -27,6 +27,7 @@ export class TripService {
             updated_at: new Date().toISOString(),
         }
         await StorageService.saveInJson("storage", "trips", trip)
+        
     }
 
     async update(id: string, data: TRIP_TYPE) {
