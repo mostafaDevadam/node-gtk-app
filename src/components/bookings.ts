@@ -401,7 +401,8 @@ export class BookingsComponent {
           payment_status: this.currentPaymentStatusValue ?? this.selectedBooking.payment_status,
           status: this.currentBookingStatusValue ?? this.selectedBooking.status,
           created_at: this.selectedBooking.created_at,
-          updated_at: ""
+          updated_at: "",
+          booking_number: this.selectedBooking.booking_number
         }
         console.log("this.submit_booking_btn edit booking:", obj)
 
