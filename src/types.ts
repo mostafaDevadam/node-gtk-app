@@ -19,6 +19,7 @@ export type USER = {
 
 export type BUS = {
    id?: string
+   userId?: string
    bus_number?: number
    capacity?: number
    bus_type?: string
@@ -66,4 +67,17 @@ export type BOOKING_TYPE = {
    updated_at?: string
 
    customer?: CUSTOMER_TYPE
+}
+
+
+export type AUDIT_LOG_TYPE = {
+   id?: string
+   user_id?: string
+   action_type?: "create" | "update" | "remove" | "export" | "login" | "logout" | "register"
+   state: "booking" | "user" | "trip" | "bus" | "customer" | "profile"
+   description?: string
+   //timestamp
+   //ip_address
+   details?: {} | any
+   created_at?: string
 }
