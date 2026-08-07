@@ -13,9 +13,18 @@ created_by (FK) (user: admin)
 import { v4 as uuidv4 } from 'uuid';
 import { StorageService } from "./storage.service.js";
 import { TRIP_TYPE } from '../types.js';
+import { AuditLogService } from './auditlogs.service.js';
 
 
 export class TripService {
+
+     private auditLogService: AuditLogService
+    
+        constructor(){
+    
+            this.auditLogService = new AuditLogService()
+    
+        }
 
     async create(data: TRIP_TYPE) {
         console.log("[TripService] create data:", data);
@@ -27,6 +36,13 @@ export class TripService {
             updated_at: new Date().toISOString(),
         }
         await StorageService.saveInJson("storage", "trips", trip)
+
+         this.auditLogService.create({
+            state: "trip",
+            action_type: "create",
+            description: "created trip",
+            //user_id: data.user_id
+        })
         
     }
 

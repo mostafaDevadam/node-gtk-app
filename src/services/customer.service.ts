@@ -12,7 +12,16 @@ import { IService } from "../interfaces.js";
 import { CUSTOMER_TYPE } from "../types.js";
 import { v4 as uuidv4 } from 'uuid';
 import { StorageService } from "./storage.service.js";
+import { AuditLogService } from "./auditlogs.service.js";
 export class CustomerService implements IService<CUSTOMER_TYPE> {
+
+     private auditLogService: AuditLogService
+    
+        constructor(){
+    
+            this.auditLogService = new AuditLogService()
+    
+        }
 
 
 
@@ -34,6 +43,15 @@ export class CustomerService implements IService<CUSTOMER_TYPE> {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         }
+
+         this.auditLogService.create({
+            state: "customer",
+            action_type: "create",
+            description: "created customer",
+            //user_id: data.user_id
+        })
+
+
         await StorageService.saveInJson("storage", "customers", customer)
         return customer
     }
@@ -54,6 +72,13 @@ export class CustomerService implements IService<CUSTOMER_TYPE> {
 
 
         console.log("[TripService] update() one:", id, one);
+
+         this.auditLogService.create({
+            state: "customer",
+            action_type: "update",
+            description: "updated customer",
+            //user_id: data.user_id
+        })
 
        return await StorageService.updateInJson("storage", "customers", data)
 

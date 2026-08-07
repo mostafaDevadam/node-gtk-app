@@ -15,13 +15,27 @@ updated_at
 
 import { IService } from "../interfaces.js";
 import { BOOKING_TYPE } from "../types.js";
+import { AuditLogService } from "./auditlogs.service.js";
 import { StorageService } from "./storage.service.js";
 import { v4 as uuidv4 } from 'uuid';
 
 export class BookingService implements IService<BOOKING_TYPE> {
 
-    async create(data: BOOKING_TYPE): Promise<BOOKING_TYPE> {
+    private auditLogService: AuditLogService
+
+    constructor() {
+
+        this.auditLogService = new AuditLogService()
+
+    }
+
+    async create(data: BOOKING_TYPE): Promise<BOOKING_TYPE | any> {
         console.log("[BookingService] create data:", data);
+
+        if (!data.customer_id || !data.user_id || !data.trip_id) {
+            console.log("some of fields of data are required! (customer_id|user_id|trip_id)")
+            return false
+        }
 
         // check if user is existing
         // check if customer is existing
@@ -35,12 +49,26 @@ export class BookingService implements IService<BOOKING_TYPE> {
             updated_at: new Date().toISOString(),
         }
         await StorageService.saveInJson("storage", "bookings", booking)
+
+        this.auditLogService.create({
+            state: "booking",
+            action_type: "create",
+            description: "created booking",
+            user_id: data.user_id
+        })
+
+
         return booking
     }
     async update(id: string, data: BOOKING_TYPE) {
 
         if (!id) {
             console.log("cannot update booking because no id")
+            return false
+        }
+
+        if (!data.customer_id || !data.user_id || !data.trip_id) {
+            console.log("some of fields of data are required! (customer_id|user_id|trip_id)")
             return false
         }
 
@@ -58,6 +86,14 @@ export class BookingService implements IService<BOOKING_TYPE> {
 
 
         console.log("[BookingService] update() one:", id, one);
+
+
+        this.auditLogService.create({
+            state: "booking",
+            action_type: "update",
+            description: "updated booking",
+            user_id: data.user_id
+        })
 
         return await StorageService.updateInJson("storage", "bookings", data)
 
@@ -84,7 +120,34 @@ export class BookingService implements IService<BOOKING_TYPE> {
         return one
 
     }
-    remove(): void {
+
+    async remove(id: string): Promise<Boolean> {
+
+        if (!id) {
+            console.log("id is required!")
+            return false
+        }
+
+        const one = await this.getById(id)
+        if (!one) {
+            console.log("no booking found!")
+            return false
+        }
+
+
+        await StorageService.removeInJson("storage", "bookings", id)
+
+
+
+        this.auditLogService.create({
+            state: "booking",
+            action_type: "remove",
+            description: "removed booking",
+            user_id: id
+        })
+
+        return true
+
 
     }
 

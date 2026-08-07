@@ -12,8 +12,17 @@ created_at
 import { BUS } from "../types.js";
 import { v4 as uuidv4 } from 'uuid';
 import { StorageService } from "./storage.service.js";
+import { AuditLogService } from "./auditlogs.service.js";
 
 export class BusService {
+
+     private auditLogService: AuditLogService
+    
+        constructor(){
+    
+            this.auditLogService = new AuditLogService()
+    
+        }
 
     async create(data: BUS) {
         console.log("[BusService] create data:", data);
@@ -24,7 +33,19 @@ export class BusService {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         }
-        await StorageService.saveInJson("storage", "buses", bus)
+
+        this.auditLogService.create({
+            state: "bus",
+            action_type: "create",
+            description: "created bus",
+            //user_id: data.user_id
+        })
+
+
+
+
+
+         await StorageService.saveInJson("storage", "buses", bus)
     }
 
     async update(id: string, data: BUS) {
@@ -41,9 +62,16 @@ export class BusService {
 
         console.log("[BusService] update() one:", id, one);
 
+         this.auditLogService.create({
+            state: "bus",
+            action_type: "update",
+            description: "updated bus",
+            user_id: data.userId
+        })
+
         await StorageService.updateInJson("storage", "buses", data)
 
-        await StorageService.removeInJson("storage", "buses", data.id)
+        
 
 
 
