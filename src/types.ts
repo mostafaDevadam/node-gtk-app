@@ -13,6 +13,9 @@ export type USER = {
    email?: string,
    password?: string
    role?: UserRole,
+   phone?: string
+   street?: string
+   city?: string
    created_at?: string
    updated_at?: string
 }
