@@ -173,21 +173,39 @@ export class BookingsComponent {
     side_group_customer.add(this.submit_btn_cust)
 
     this.submit_btn_cust.on("activated", async () => {
-      const obj: CUSTOMER_TYPE = {
-        name: this.input_cust_name.getText(),
-        phone: this.input_phone.getText(),
-        email: this.input_email.getText(),
-        address: this.input_address.getText(),
-      }
-      console.log("this.submit_btn_cust:", obj)
+
+      
       if (this.isEdit && this.selectedBooking?.customer) {
+        // update customer
+        const obj: CUSTOMER_TYPE = {
+          id: this.selectedBooking?.customer.id,
+          name: this.input_cust_name.getText() ?? this.selectedBooking?.customer.name,
+          phone: this.input_phone.getText() ?? this.selectedBooking?.customer.phone,
+          email: this.input_email.getText() ?? this.selectedBooking?.customer.email,
+          address: this.input_address.getText() ?? this.selectedBooking?.customer.address,
+          created_at: this.selectedBooking?.customer.created_at
+        }
+        console.log("this.submit_btn_cust edit:", obj)
 
         console.log("edit customer")
         obj.id = this.selectedBooking.customer.id
-        this.customerService.update(obj.id!!, obj)
+        const result = await this.customerService.update(obj.id!!, obj)
+        if(!result){
+            this.app.showToast("cannot update customer")
+            return
+        }
+        this.app.showToast("updated customer successfully!")
+
+
 
       } else {
         // create customer
+        const obj: CUSTOMER_TYPE = {
+          name: this.input_cust_name.getText(),
+          phone: this.input_phone.getText(),
+          email: this.input_email.getText(),
+          address: this.input_address.getText(),
+        }
         const customer = await this.customerService.create(obj)
         console.log("new-customer:", customer);
         if (!customer) {

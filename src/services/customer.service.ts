@@ -38,6 +38,11 @@ export class CustomerService implements IService<CUSTOMER_TYPE> {
         return customer
     }
     async update(id: string, data: CUSTOMER_TYPE) {
+        if(!id){
+            console.log("cannot update customer because no id")
+            return false
+        }
+
         data.updated_at = new Date().toISOString()
         console.log("[TripService] update() :", id, data);
 
@@ -50,7 +55,7 @@ export class CustomerService implements IService<CUSTOMER_TYPE> {
 
         console.log("[TripService] update() one:", id, one);
 
-        await StorageService.updateInJson("storage", "trips", data)
+       return await StorageService.updateInJson("storage", "customers", data)
 
     }
     async getAll(): Promise<CUSTOMER_TYPE[] | any[]> {
