@@ -2,6 +2,7 @@
 # which are regenerated on install — never commit them)
 node_modules/
 storage/
+download/
 
 # build output
 dist/
