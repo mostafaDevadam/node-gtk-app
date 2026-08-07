@@ -35,16 +35,24 @@ export class ProfileComponent {
 
     })
     box.setSizeRequest(240, -1)
-    //const lbl = new Gtk.Label({label: "info#"})
-    //box.append(lbl)
+
+
+
+
 
     // export_btn
     const export_btn = new Gtk.Button({
       label: "Export"
     })
 
+    const popover = this.displayPopover(export_btn)
+
+
+
     export_btn.on("clicked", async () => {
       console.log("export_btn")
+
+      popover.popup();
 
       const file_name = 'data_export.pdf'
       const folder_name = "download"
@@ -56,7 +64,7 @@ export class ProfileComponent {
 
 
 
-      try {
+      /*try {
 
         if (!fs.existsSync(folder_path)) {
           fs.mkdirSync(folder_path, { recursive: true })
@@ -71,7 +79,7 @@ export class ProfileComponent {
 
       } catch (error) {
         console.log("Failed to create file:", error)
-      }
+      }*/
 
     })
 
@@ -84,6 +92,7 @@ export class ProfileComponent {
 
 
     })
+
 
     edit_btn.connect("clicked", () => {
 
@@ -171,15 +180,6 @@ export class ProfileComponent {
     })
 
     box.append(edit_btn)
-
-
-
-
-
-
-
-
-
 
 
     // in center_stack
@@ -351,6 +351,161 @@ export class ProfileComponent {
   }
 
 
+  displayPopover(parent: any) {
+
+    // 1. Create the Popover instance
+    const popover = new Gtk.Popover();
+
+    // 2. Create the content you want inside the popover (e.g., a Box with text or buttons)
+    const popoverBox = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 10,
+      marginTop: 10,
+      marginBottom: 10,
+      marginStart: 10,
+      marginEnd: 10,
+    });
+
+    const label = new Gtk.Label({ label: "Export options or settings" });
+    //popoverBox.append(label);
+
+    const group = new Adw.PreferencesGroup({ title: "Export options" })
+    popoverBox.append(group);
+
+
+    const options = ['PDF', 'TXT'];
+    const stringList = Gtk.StringList.new(options);
+
+    let selectedFileType = ""
+
+    // 2. Instantiate the ComboRow
+    const comboRow = new Adw.ComboRow();
+    group.add(comboRow)
+    comboRow.setTitle('File Type');
+    comboRow.setSubtitle('Select your favorite file');
+    comboRow.setModel(stringList); // Map the data model to the Adw row
+
+    // 3. Optional: Enable search filter tracking within the row overlay popup
+    comboRow.setEnableSearch(true);
+
+    // 4. Capture selection updates using property notification signatures
+    comboRow.on('notify::selected', () => {
+      const selectedIndex = comboRow.getSelected();
+
+      // Extract the StringObject wrapper safely
+      const selectedItem = comboRow.getSelectedItem()!!
+
+      if (selectedItem) {
+        // Assert the generic object as a Gtk.StringObject
+        const stringObj = selectedItem as any
+        const stringValue = stringObj.getString();
+
+        console.log(`User picked item #${selectedIndex}: "${stringValue}"`);
+
+        selectedFileType = stringValue
+
+      }
+    });
+
+
+    const input_file_name = new Adw.EntryRow({
+      title: "File Name",
+      inputPurpose: Gtk.InputPurpose.NAME,
+    })
+    group.add(input_file_name)
+
+
+    const submit_btn = new Adw.ActionRow({
+      title: "Export",
+      halign: Gtk.Align.CENTER,
+      activatable: true,
+
+    })
+    group.add(submit_btn)
+
+
+    const folder_name = "download"
+    const folder_path = path.join(process.cwd(), folder_name)
+
+    //const content = 'This file was created by \n clicking the GTK button.';
+
+    const content = `Name: ${this.app.active_user.name}\nEmail: ${this.app.active_user.email}\n`
+
+    submit_btn.on("activated", () => {
+      if (selectedFileType) {
+        console.log("submit_btn popover:", selectedFileType)
+
+        switch (selectedFileType) {
+          case "PDF":
+            console.log("PDF")
+            try {
+
+              if (!fs.existsSync(folder_path)) {
+                fs.mkdirSync(folder_path, { recursive: true })
+                console.log(`Diectory created: ${folder_path}`)
+              }
+              //let file_name = `${input_file_name.getText() || 'data_export'}.pdf`
+
+              let file_name = 'data_export.pdf'
+
+              if (input_file_name.getText()) {
+                file_name = `${input_file_name.getText()}.pdf`
+              }
+
+              const file_path = path.join(folder_path, file_name)
+
+              this.generatePDF(file_path, content)
+
+            } catch (error) {
+              console.log("Failed to create file:", error)
+            }
+
+            break;
+
+          case "TXT":
+            console.log("TXT")
+            try {
+
+              if (!fs.existsSync(folder_path)) {
+                fs.mkdirSync(folder_path, { recursive: true })
+                console.log(`Diectory created: ${folder_path}`)
+              }
+
+              let file_name = `${input_file_name.getText() || 'data_export'}.txt`
+
+              const file_path = path.join(folder_path, file_name)
+
+              this.generateTxtFile(file_path, content)
+
+            } catch (error) {
+              console.log("Failed to create file:", error)
+            }
+            break;
+        }
+
+      }
+
+      popover.popdown()
+
+
+    })
+
+    // Set the content container to the popover
+    popover.setChild(popoverBox);
+
+    // 3. Set the parent widget (the button that triggers it)
+
+    popover.setParent(parent)
+
+
+    // Optional: Set positioning (e.g., Gtk.PopoverPosition.BOTTOM)
+    popover.setPosition(Gtk.PositionType.BOTTOM);
+
+    return popover
+
+  }
+
+
   generatePDF(file_path: any, content: any) {
     const doc = new PDF()
 
@@ -367,7 +522,7 @@ export class ProfileComponent {
 
     writeStream.on('finish', () => {
       console.log(`PDF successfully created at: ${file_path}`);
-      this.app.showAlert("Notice", "File successfully created in the content folder!")
+      this.app.showAlert("Notice", "PDF File successfully created in the content folder!")
       this.auditLogService.create({
         state: "profile",
         action_type: "export",
@@ -382,7 +537,7 @@ export class ProfileComponent {
     fs.writeFileSync(file_path, content, 'utf-8')
     console.log(`File successfully created at: ${file_path}`)
 
-    this.app.showAlert("Notice", "File successfully created in the content folder!")
+    this.app.showAlert("Notice", "TXT File successfully created in the content folder!")
 
     //this.app.showToast("File saved successfully!")
 
