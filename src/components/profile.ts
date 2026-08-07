@@ -435,6 +435,20 @@ export class ProfileComponent {
       if (selectedFileType) {
         console.log("submit_btn popover:", selectedFileType)
 
+        const d = new Gtk.FileDialog({
+          title: "Export File"
+        })
+
+
+
+        const dialog = new Gtk.FileChooserNative({
+          title: "Export File",
+          action: Gtk.FileChooserAction.SAVE,
+          transientFor: this.app.window,
+          acceptLabel: "_Save",
+          cancelLabel: "_Cancel"
+        })
+
         switch (selectedFileType) {
           case "PDF":
             console.log("PDF")
@@ -446,6 +460,7 @@ export class ProfileComponent {
               }
               //let file_name = `${input_file_name.getText() || 'data_export'}.pdf`
 
+
               let file_name = 'data_export.pdf'
 
               if (input_file_name.getText()) {
@@ -454,7 +469,27 @@ export class ProfileComponent {
 
               const file_path = path.join(folder_path, file_name)
 
-              this.generatePDF(file_path, content)
+              //this.generatePDF(file_path, content)
+
+              dialog.setTitle("Export PDF")
+
+              dialog.on("response", (responseId) => {
+                if (responseId === Gtk.ResponseType.ACCEPT || responseId == 0) {
+
+                  const file_ = dialog.getFile()
+                  const filePath_ = file_?.getPath()!!
+
+                  try {
+                    this.generatePDF(`${filePath_}.pdf`, content)
+
+                  } catch (error) {
+                    this.app.showToast("Cannot export as pdf file!")
+                  }
+
+                }
+                dialog.destroy()
+              })
+              dialog.show()
 
             } catch (error) {
               console.log("Failed to create file:", error)
@@ -475,7 +510,27 @@ export class ProfileComponent {
 
               const file_path = path.join(folder_path, file_name)
 
-              this.generateTxtFile(file_path, content)
+              //this.generateTxtFile(file_path, content)
+
+              dialog.setTitle("Export TXT")
+              dialog.on("response", (responseId) => {
+                console.log({ responseId })
+                if (responseId === Gtk.ResponseType.ACCEPT || responseId == 0) {
+
+                  const file_ = dialog.getFile()
+                  const filePath_ = file_?.getPath()!!
+
+                  try {
+                    this.generateTxtFile(`${filePath_}.txt`, content)
+
+                  } catch (error) {
+                    this.app.showToast("Cannot export as txt file!")
+                  }
+
+                }
+                dialog.destroy()
+              })
+              dialog.show()
 
             } catch (error) {
               console.log("Failed to create file:", error)
@@ -483,9 +538,12 @@ export class ProfileComponent {
             break;
         }
 
+        //dialog.show()
+
       }
 
       popover.popdown()
+
 
 
     })
@@ -533,6 +591,8 @@ export class ProfileComponent {
   }
 
   generateTxtFile(file_path: any, content: any) {
+
+    console.log({ file_path, content })
 
     fs.writeFileSync(file_path, content, 'utf-8')
     console.log(`File successfully created at: ${file_path}`)
