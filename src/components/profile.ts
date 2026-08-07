@@ -7,21 +7,42 @@ import fs_ from 'fs/promises'
 import path from 'path'
 import PDF from 'pdfkit'
 import { AuditLogService } from '../services/auditlogs.service.js'
+import { UserService } from '../services/user.service.js'
+import { USER } from '../types.js'
 
 export class ProfileComponent {
 
   app: any
   auditLogService: AuditLogService
   //template_view: TemplateViewComponent
+  userService: UserService
+  userId: string = ""
+
+  currentUser: USER = {}
 
 
   constructor(app: any) {
     this.app = app
     this.auditLogService = new AuditLogService()
+    this.userService = new UserService()
     //this.template_view = new TemplateViewComponent(this.app)
   }
 
-  build_info_view() {
+  async getUser() {
+    this.currentUser = await this.userService.getUserById(this.userId)
+    console.log("currentUser:", this.currentUser)
+
+  }
+
+  async build_info_view() {
+    this.userId = this.app.active_user.id
+    this.getUser()
+
+
+
+
+
+
 
     // in center_stack
 
@@ -133,6 +154,7 @@ export class ProfileComponent {
       const input_name = new Adw.EntryRow({
         title: "Name",
         inputPurpose: Gtk.InputPurpose.NAME,
+        text: this.currentUser.name ?? this.app.active_user.name ?? ""
 
       })
       group.add(input_name)
@@ -141,12 +163,14 @@ export class ProfileComponent {
         title: "Email",
         inputPurpose: Gtk.InputPurpose.EMAIL,
         //marginTop: 20,
+        text: this.currentUser.email ?? this.app.active_user.email ?? ""
       })
       group.add(input_email)
       // phone
       const input_phone = new Adw.EntryRow({
         title: "Phone",
         inputPurpose: Gtk.InputPurpose.PHONE,
+        text: this.currentUser.phone ?? this.app.active_user.phone ?? ""
         //marginTop: 20,
       })
       group.add(input_phone)
@@ -165,11 +189,42 @@ export class ProfileComponent {
         halign: Gtk.Align.END,
         marginTop: 40,
       })*/
-      submit_btn.connect("activated", () => {
+      submit_btn.connect("activated", async () => {
         /*title.setVisible(false)
         close_btn.setVisible(false)
         group.setVisible(false)*/
-        this.app.showToast("saved profile info data")
+
+        if (!this.app.active_user.password) {
+          console.log("cannot update profile info because missing password")
+          return
+        }
+
+        const obj: USER = {
+          ...this.app.active_user,
+          name: input_name.getText() ?? this.app.active_user.name ?? "",
+          email: input_email.getText() ?? this.app.active_user.email ?? "",
+          phone: input_phone.getText() ?? this.app.active_user.phone ?? "",
+          password: this.app.active_user.password,
+          created_at: this.app.active_user.created_at ?? ""
+
+        }
+
+        console.log("submit edit profile info:", obj)
+
+        if (!obj.id) {
+          this.app.showToast("id is requited!")
+          return
+        }
+
+        const result = await this.userService.update(obj.id, obj)
+        if (!result) {
+          this.app.showToast("Updated profile info successfully!")
+          return
+        }
+
+        this.getUser()
+
+        this.app.showToast("Cannot update profile info!")
       })
       group.add(submit_btn)
 
@@ -197,7 +252,7 @@ export class ProfileComponent {
     box.append(group)
 
 
-    const name_row = new Adw.ActionRow({ title: "Name", subtitle: this.app.active_user.name ?? "test-name" })
+    const name_row = new Adw.ActionRow({ title: "Name", subtitle: this.currentUser.name ?? this.app.active_user.name ?? "test-name" })
 
 
     if (this.app) {
@@ -206,7 +261,7 @@ export class ProfileComponent {
     }
     group.add(name_row)
 
-    const email_row = new Adw.ActionRow({ title: "Email", subtitle: this.app.active_user.email ?? "test email" })
+    const email_row = new Adw.ActionRow({ title: "Email", subtitle: this.currentUser.email ?? this.app.active_user.email ?? "test email" })
     this.app.register_widget(email_row, "title", "email")
     email_row.addSuffix(this.app.build_copy_btn(this.app.active_user.email))
     group.add(email_row)
@@ -220,6 +275,9 @@ export class ProfileComponent {
   }
 
   build_address_view() {
+
+    this.userId = this.app.active_user.id
+    this.getUser()
 
     const box = new Gtk.Box({
       orientation: Gtk.Orientation.VERTICAL,
@@ -276,17 +334,19 @@ export class ProfileComponent {
       //
       this.app.right_sidebar.append(group)
       // inputs
-      // name
+      // street
       const input_street = new Adw.EntryRow({
         title: "Street",
         inputPurpose: Gtk.InputPurpose.NAME,
+        text: this.currentUser.street ?? this.app.active_user.street ?? ""
 
       })
       group.add(input_street)
-      // email
+      // city
       const input_city = new Adw.EntryRow({
         title: "City",
-        inputPurpose: Gtk.InputPurpose.EMAIL,
+        inputPurpose: Gtk.InputPurpose.NAME,
+        text: this.currentUser.city ?? this.app.active_user.city ?? ""
         //marginTop: 20,
       })
       group.add(input_city)
@@ -306,11 +366,45 @@ export class ProfileComponent {
         halign: Gtk.Align.END,
         marginTop: 40,
       })*/
-      submit_btn.connect("activated", () => {
+      submit_btn.connect("activated", async () => {
         /*title.setVisible(false)
         close_btn.setVisible(false)
         group.setVisible(false)*/
-        this.app.showToast("saved profile address data")
+        if (!this.app.active_user.password) {
+          console.log("cannot update profile info because missing password")
+          return
+        }
+
+        const obj: USER = {
+          ...this.app.active_user,
+          name: this.app.active_user.name,
+          email: this.app.active_user.email,
+          phone: this.app.active_user.phone ?? "",
+          password: this.app.active_user.password,
+          created_at: this.app.active_user.created_at,
+
+          street: input_street.getText() ?? this.app.active_user.street ?? "",
+          city: input_city.getText() ?? this.app.active_user.city ?? "",
+
+        }
+
+        console.log("submit edit profile address:", obj)
+
+        if (!obj.id) {
+          this.app.showToast("id is requited!")
+          return
+        }
+
+        const result = await this.userService.update(obj.id, obj)
+
+        if (!result) {
+          this.app.showToast("Cannot update profile address!")
+          return
+        }
+
+        this.getUser()
+
+        this.app.showToast("updated profile address data successfully!!")
       })
       group.add(submit_btn)
 
@@ -329,7 +423,7 @@ export class ProfileComponent {
     this.app.register_widget(group, "title", "profile_address")
     box.append(group)
 
-    const street_row = new Adw.ActionRow({ title: "Street", subtitle: "test-street" })
+    const street_row = new Adw.ActionRow({ title: "Street", subtitle: this.currentUser.street ?? this.app.active_user.street ?? "test-street" })
     if (this.app) {
       this.app.register_widget(street_row, "title", "street")
       street_row.addSuffix(this.app.build_copy_btn("schluss"))
@@ -337,7 +431,7 @@ export class ProfileComponent {
 
     group.add(street_row)
 
-    const city_row = new Adw.ActionRow({ title: "City", subtitle: "test-city" })
+    const city_row = new Adw.ActionRow({ title: "City", subtitle: this.currentUser.city ?? this.app.active_user.city ?? "test-city" })
     this.app.register_widget(city_row, "title", "city")
     city_row.addSuffix(this.app.build_copy_btn("kiel"))
     group.add(city_row)
