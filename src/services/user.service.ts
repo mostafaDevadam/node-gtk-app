@@ -23,7 +23,7 @@ export class UserService {
 
     }
 
-    
+
     async get_users(): Promise<USER[] | any[]> {
         const list = await StorageService.readFromJson("storage", "users")!!
         console.log("list:", list)
@@ -80,7 +80,7 @@ export class UserService {
 
         if(!id || !data.id){
             console.log("id is required!")
-            return
+            return false
         }
 
         data.updated_at = new Date().toISOString()
@@ -89,7 +89,7 @@ export class UserService {
         const one = await this.getUserById(id)
         if (!one) {
             console.log("cannot update user because not found")
-            return
+            return false
         }
 
 
@@ -102,7 +102,7 @@ export class UserService {
             user_id: id
         })
 
-        await StorageService.updateInJson("storage", "users", data)
+        return await StorageService.updateInJson("storage", "users", data)
     }
 
 }
