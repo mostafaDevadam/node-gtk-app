@@ -3,14 +3,21 @@ import { Adw, GLib, Gio, Gtk } from '../index.js'
 
 
 import fs from 'fs'
+import fs_ from 'fs/promises'
 import path from 'path'
+import PDF from 'pdfkit'
+import { AuditLogService } from '../services/auditlogs.service.js'
 
 export class ProfileComponent {
 
   app: any
+  auditLogService: AuditLogService
   //template_view: TemplateViewComponent
+
+
   constructor(app: any) {
     this.app = app
+    this.auditLogService = new AuditLogService()
     //this.template_view = new TemplateViewComponent(this.app)
   }
 
@@ -36,16 +43,16 @@ export class ProfileComponent {
       label: "Export"
     })
 
-    export_btn.on("clicked", () => {
+    export_btn.on("clicked", async () => {
       console.log("export_btn")
 
-      const file_name = 'data_export.txt'
+      const file_name = 'data_export.pdf'
       const folder_name = "download"
       const folder_path = path.join(process.cwd(), folder_name)
-      const file_path = path.join(folder_path, file_name)
+
       //const content = 'This file was created by \n clicking the GTK button.';
 
-      const content = `${this.app.active_user.name}\n${this.app.active_user.email}\n`
+      const content = `Name: ${this.app.active_user.name}\nEmail: ${this.app.active_user.email}\n`
 
 
 
@@ -56,28 +63,11 @@ export class ProfileComponent {
           console.log(`Diectory created: ${folder_path}`)
         }
 
+        const file_path = path.join(folder_path, file_name)
+
+        this.generatePDF(file_path, content)
 
 
-        fs.writeFileSync(file_path, content, 'utf-8')
-        console.log(`File successfully created at: ${file_path}`)
-
-        /*const dialog = new Gtk.MessageDialog({
-          text: "",
-          messageType: Gtk.MessageType.INFO,
-          buttons: Gtk.ButtonsType.OK
-        })
-        dialog.present()*/
-
-        //this.app.center_stack.append(dialog)
-
-        //dialog.destroy()
-
-
-        this.app.showAlert("Notice", "File successfully created in the content folder!")
-
-
-
-        //this.app.showToast("File saved successfully!")
 
       } catch (error) {
         console.log("Failed to create file:", error)
@@ -86,9 +76,6 @@ export class ProfileComponent {
     })
 
     box.append(export_btn)
-
-
-
 
     // edit_btn
 
@@ -360,6 +347,44 @@ export class ProfileComponent {
 
     //const temp = new TemplateViewComponent(this)
     this.app.template_view.build_template_view("Profile", "profile_address_view", box)
+
+  }
+
+
+  generatePDF(file_path: any, content: any) {
+    const doc = new PDF()
+
+    const writeStream = fs.createWriteStream(file_path)
+    doc.pipe(writeStream)
+
+    doc.fontSize(20).text('Data Export Report', { align: 'center' })
+    doc.moveDown()
+    doc.fontSize(12).text(content);
+    //doc.text(`Export Date: ${new Date().toISOString().split('T')[0]}`);
+    //doc.text("Status: Success")
+
+    doc.end()
+
+    writeStream.on('finish', () => {
+      console.log(`PDF successfully created at: ${file_path}`);
+      this.app.showAlert("Notice", "File successfully created in the content folder!")
+      this.auditLogService.create({
+        state: "profile",
+        action_type: "export",
+        description: "export user profile",
+        user_id: this.app.active_user.id
+      })
+    })
+  }
+
+  generateTxtFile(file_path: any, content: any) {
+
+    fs.writeFileSync(file_path, content, 'utf-8')
+    console.log(`File successfully created at: ${file_path}`)
+
+    this.app.showAlert("Notice", "File successfully created in the content folder!")
+
+    //this.app.showToast("File saved successfully!")
 
   }
 }
