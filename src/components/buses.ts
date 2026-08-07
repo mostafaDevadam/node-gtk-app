@@ -17,12 +17,16 @@ export class BusesComponent {
   input_chair_count: any
   submit_btn: any
 
+  userId: string = ""
+
   constructor(app: any) {
     this.app = app
     this.bus_service = new BusService()
   }
 
   async build_trips_view() {
+
+    this.userId = this.app.active_user.id
 
     const isAdmin = this.app.active_user_role === UserRole.admin || this.app.active_user_role === "admin";
 
@@ -102,6 +106,7 @@ export class BusesComponent {
 
         const obj: BUS = {
           id: "",
+          userId: this.userId,
           bus_number: parseInt(this.input_bus_number.getText()),
           capacity: parseInt(this.input_capacity.getText()),
           bus_type: this.input_bus_type.getText(),
@@ -313,7 +318,7 @@ export class BusesComponent {
       })
       parent.add(this.submit_btn)*/
 
-      this.submit_btn.on("activated", () => {
+      /*this.submit_btn.on("activated", () => {
         console.log("submit_btn activated")
 
         const obj: BUS = {
@@ -335,7 +340,7 @@ export class BusesComponent {
 
 
 
-      })
+      })*/
    }
 
   }
