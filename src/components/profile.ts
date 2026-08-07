@@ -435,9 +435,9 @@ export class ProfileComponent {
       if (selectedFileType) {
         console.log("submit_btn popover:", selectedFileType)
 
-        const d = new Gtk.FileDialog({
+        /*const d = new Gtk.FileDialog({
           title: "Export File"
-        })
+        })*/
 
 
 
@@ -584,7 +584,7 @@ export class ProfileComponent {
       this.auditLogService.create({
         state: "profile",
         action_type: "export",
-        description: "export user profile",
+        description: "export user profile as PDF",
         user_id: this.app.active_user.id
       })
     })
@@ -596,6 +596,13 @@ export class ProfileComponent {
 
     fs.writeFileSync(file_path, content, 'utf-8')
     console.log(`File successfully created at: ${file_path}`)
+
+    this.auditLogService.create({
+      state: "profile",
+      action_type: "export",
+      description: "export user profile as TXT",
+      user_id: this.app.active_user.id
+    })
 
     this.app.showAlert("Notice", "TXT File successfully created in the content folder!")
 
