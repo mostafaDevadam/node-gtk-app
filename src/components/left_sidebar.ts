@@ -8,9 +8,6 @@ import { AuthInstance, AuthService } from '../services/auth.service.js';
 
 export class LeftSidebar extends Gtk.Box {
 
-     
-
-
     authService: AuthService
     app: any
     private label: any
@@ -23,7 +20,6 @@ export class LeftSidebar extends Gtk.Box {
             marginBottom: 24,
             marginStart: 24,
             marginEnd: 24,
-        
 
         })
         this.app = app
@@ -42,15 +38,13 @@ export class LeftSidebar extends Gtk.Box {
             this.updateLeftLabel(this.app.active_username);
         }
 
-        
-
-
     }
 
     public updateLeftLabel(username: string) {
-        this.label.setText(`left_sidebar - ${username}`)
+        this.label.setText(`${username}`)
         //this.label.text = `left_sidebar - ${AuthInstance.loggedIn_user.name}`
     }
 
 
 }
+
