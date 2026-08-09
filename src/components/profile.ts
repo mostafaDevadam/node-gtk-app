@@ -1451,7 +1451,9 @@ class DragDropComponent {
     // Setup drag and drop
     console.log("---------------#")
     //this.setupDragAndDrop(dropBox);
-    dropFrame.addController(this.setupDragAndDrop(dropBox));
+    //dropFrame.addController(this.setupDragAndDrop(dropBox));
+
+    dropBox.append(dnd())
 
     // Setup click handler
     const clickGesture = new Gtk.GestureClick();
