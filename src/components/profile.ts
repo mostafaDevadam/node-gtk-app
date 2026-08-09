@@ -1,5 +1,5 @@
 
-import { Adw, GLib, Gio, Gtk } from '../index.js'
+import { Adw, GLib, Gio, Gtk, Gdk, GObject } from '../index.js'
 
 
 import fs from 'fs'
@@ -30,7 +30,7 @@ export class ProfileComponent {
 
   async getUser() {
     this.currentUser = await this.userService.getUserById(this.userId)
-    console.log("currentUser:", this.currentUser)
+    //console.log("currentUser:", this.currentUser)
 
   }
 
@@ -265,6 +265,16 @@ export class ProfileComponent {
     this.app.register_widget(email_row, "title", "email")
     email_row.addSuffix(this.app.build_copy_btn(this.app.active_user.email))
     group.add(email_row)
+
+
+    // drag-drop
+    //this.buildFlatChooseFile(box)
+    // this.buildDragDrop(box)
+    const dd = new DragDropComponent()
+    dd.buildDragDrop(box)
+
+    box.append(dnd())
+
 
 
 
@@ -653,6 +663,13 @@ export class ProfileComponent {
     // Optional: Set positioning (e.g., Gtk.PopoverPosition.BOTTOM)
     popover.setPosition(Gtk.PositionType.BOTTOM);
 
+
+
+
+
+
+
+
     return popover
 
   }
@@ -703,4 +720,937 @@ export class ProfileComponent {
     //this.app.showToast("File saved successfully!")
 
   }
+
+  buildFlatChooseFile(parent: any) {
+    const drag_drop_box = new Gtk.Box({
+      orientation: Gtk.Orientation.HORIZONTAL,
+      spacing: 10,
+      marginBottom: 12,
+      marginStart: 12,
+      marginEnd: 12,
+      heightRequest: 100,
+    })
+    parent.append(drag_drop_box)
+
+    const drag_drop_label = new Gtk.Label({
+      label: 'Drag & Drop .txt file here',
+      vexpand: true,
+      hexpand: true
+    })
+    drag_drop_box.append(drag_drop_label)
+
+
+
+    // Make the box reactive to clicks so users can select a file natively
+    const clickGesture = new Gtk.GestureClick();
+    clickGesture.connect("released", () => {
+      // Open native file chooser dialog
+      const dialog = new Gtk.FileChooserDialog({
+        title: "Open Text File",
+        action: Gtk.FileChooserAction.OPEN,
+        // transientFor: parent_window, // optional: pass your main window here if available
+      });
+
+      dialog.addButton("Cancel", Gtk.ResponseType.CANCEL);
+      dialog.addButton("Open", Gtk.ResponseType.ACCEPT);
+
+      dialog.connect("response", (dlg: any, response: number) => {
+        if (response === Gtk.ResponseType.ACCEPT) {
+          const file = dialog.getFile();
+          const filePath = file ? file.getPath() : null;
+
+          if (filePath && filePath.endsWith(".txt")) {
+            fs.readFile(filePath, 'utf8', (err, data) => {
+              if (err) {
+                console.log("Error reading file:", err);
+                return;
+              }
+              console.log("File content:\n", data);
+              drag_drop_label.setText("Done!");
+            });
+          }
+        }
+        dialog.destroy();
+      });
+
+      dialog.show();
+    });
+
+
+    drag_drop_box.addController(clickGesture)
+  }
+
+
+
+
+
+
+  buildDragDrop(parent: any) {
+    // Main container
+    const mainBox = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 10,
+      marginBottom: 12,
+      marginStart: 12,
+      marginEnd: 12,
+    });
+    parent.append(mainBox);
+
+    // Create drop area using a Frame
+    const dropFrame = new Gtk.Frame();
+    //dropFrame.setShadowType(Gtk.ShadowType.IN);
+
+    const dropBox = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 5,
+      marginStart: 20,
+      marginEnd: 20,
+      marginTop: 20,
+      marginBottom: 20,
+      heightRequest: 100,
+    });
+
+    const dragLabel = new Gtk.Label({
+      label: '📄 Drag & Drop .txt file here\nor click to select',
+      justify: Gtk.Justification.CENTER,
+      useMarkup: true,
+      vexpand: true,
+      hexpand: true,
+    });
+
+    dropBox.append(dragLabel);
+    dropFrame.setChild(dropBox);
+    mainBox.append(dropFrame);
+
+    // Text display area
+    const scrolledWindow = new Gtk.ScrolledWindow({
+      heightRequest: 200,
+      vexpand: true,
+    });
+
+    const textView = new Gtk.TextView()
+
+    textView.setEditable(false);
+    textView.setWrapMode(Gtk.WrapMode.WORD);
+    scrolledWindow.setChild(textView);
+    mainBox.append(scrolledWindow);
+
+    // Setup drag and drop
+    this.setupDragAndDrop(dropFrame, dragLabel, textView);
+
+
+    // Setup click handler using GestureClick
+    const clickGesture = new Gtk.GestureClick();
+    clickGesture.connect('pressed', () => {
+      this.openFileChooser(dragLabel, textView);
+    });
+    dropFrame.addController(clickGesture);
+
+    // Apply styles
+    this.applyStyles();
+  }
+
+
+
+  handleDrop(value: any, dragLabel: any, textView: any): boolean {
+    try {
+      console.log('Handling drop value:', typeof value, value);
+
+      let filePath = null;
+
+      // If value is a string, try to parse as URI
+      if (typeof value === 'string') {
+        console.log('Value is string:', value);
+        const lines = value.split('\n').filter((line: string) => line.trim());
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('file://')) {
+            filePath = this.uriToPath(trimmed);
+            break;
+          }
+        }
+      }
+
+      // If value is an object with getUris method
+      if (!filePath && value && typeof value.getUris === 'function') {
+        try {
+          const uris = value.getUris();
+          console.log('Got URIs from getUris():', uris);
+          if (uris && uris.length > 0) {
+            filePath = this.uriToPath(uris[0]);
+          }
+        } catch (e) {
+          console.log('getUris() failed:', e);
+        }
+      }
+
+      // If value is an object with getFiles method (Gdk.FileList)
+      if (!filePath && value && typeof value.getFiles === 'function') {
+        try {
+          const files = value.getFiles();
+          console.log('Got files from getFiles():', files);
+          if (files && files.length > 0) {
+            const file = files[0];
+            if (file && typeof file.getPath === 'function') {
+              filePath = file.getPath();
+            }
+          }
+        } catch (e) {
+          console.log('getFiles() failed:', e);
+        }
+      }
+
+      // Try to get path from Gio.File object directly
+      if (!filePath && value && typeof value.getPath === 'function') {
+        try {
+          filePath = value.getPath();
+          console.log('Got path from getPath():', filePath);
+        } catch (e) {
+          console.log('getPath() failed:', e);
+        }
+      }
+
+      if (!filePath) {
+        dragLabel.setLabel('❌ Could not extract file path from drop data');
+        console.log('No file path found');
+        return false;
+      }
+
+      console.log('File path extracted:', filePath);
+
+      // Check if it's a text file
+      if (!filePath.toLowerCase().match(/\.(txt|text|log|md|csv|json|xml|yaml|yml|js|ts|py|java|c|cpp|h|hpp|sh|bash)$/)) {
+        dragLabel.setLabel('⚠️ Please drop a text file');
+        return false;
+      }
+
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        dragLabel.setLabel(`❌ File not found: ${path.basename(filePath)}`);
+        return false;
+      }
+
+      // Read the file
+      const content = fs.readFileSync(filePath, 'utf8');
+      const buffer = textView.getBuffer();
+      buffer.setText(content);
+      dragLabel.setLabel(`✅ Loaded: ${path.basename(filePath)} (${content.length} characters)`);
+
+      return true;
+
+    } catch (error: any) {
+      console.error('Drop error:', error);
+      dragLabel.setLabel(`❌ Error: ${error.message}`);
+      return false;
+    }
+  }
+
+
+
+  setupDragAndDrop(frame: any, label: any, textView: any) {
+    console.log("setupDragAndDrop")
+    // Get the GType for Gdk.FileList
+    // GTK 4: Create a DropTarget
+    const dropTarget = new Gtk.DropTarget()
+
+    dropTarget.setActions(Gdk.DragAction.COPY)
+
+    // Connect the drop signal
+    dropTarget.connect('drop', (target: any, value: any, x: number, y: number) => {
+      console.log("Drop event triggered, value type:", typeof value, "value:", value)
+      return this.handleDropData(value, label, textView);
+    });
+
+    // Add visual feedback
+    dropTarget.connect('enter', (target: any, x: number, y: number) => {
+      console.log("Drag enter")
+      frame.getStyleContext().addClass('drag-over')
+      return Gdk.DragAction.COPY
+    });
+
+    dropTarget.connect('leave', () => {
+      console.log("Drag leave")
+      frame.getStyleContext().removeClass('drag-over')
+    });
+
+    // Add the drop target to the frame
+    frame.addController(dropTarget)
+
+    console.log("DropTarget setup complete")
+
+
+  }
+
+
+  handleDropData(value: any, label: any, textView: any) {
+
+    console.log("handleDropData called with value type:", typeof value)
+
+    try {
+      let filePath = null
+
+      // Method 1: Check if value is a string (URI list)
+      if (typeof value === 'string') {
+        console.log("Value is string:", value)
+        const lines = value.split('\n').filter((line: string) => line.trim())
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (trimmed.startsWith('file://')) {
+            filePath = this.uriToPath(trimmed)
+            break
+          } else if (trimmed.startsWith('/') || trimmed.match(/^[A-Za-z]:/)) {
+            // Direct file path (Unix or Windows)
+            filePath = trimmed
+            break
+          }
+        }
+      }
+
+      // Method 2: Check if value has getUris method
+      if (!filePath && value && typeof value.getUris === 'function') {
+        try {
+          const uris = value.getUris()
+          console.log("Got URIs from getUris():", uris)
+          if (uris && uris.length > 0) {
+            filePath = this.uriToPath(uris[0])
+          }
+        } catch (e) {
+          console.log("getUris() failed:", e)
+        }
+      }
+
+      // Method 3: Check if value has getText method
+      if (!filePath && value && typeof value.getText === 'function') {
+        try {
+          const text = value.getText()
+          console.log("Got text from getText():", text)
+          if (text) {
+            const lines = text.split('\n').filter((line: string) => line.trim())
+            for (const line of lines) {
+              const trimmed = line.trim()
+              if (trimmed.startsWith('file://')) {
+                filePath = this.uriToPath(trimmed)
+                break
+              } else if (trimmed.startsWith('/') || trimmed.match(/^[A-Za-z]:/)) {
+                filePath = trimmed
+                break
+              }
+            }
+          }
+        } catch (e) {
+          console.log("getText() failed:", e)
+        }
+      }
+
+      // Method 4: Check if value has getPath method (Gio.File)
+      if (!filePath && value && typeof value.getPath === 'function') {
+        try {
+          filePath = value.getPath()
+          console.log("Got path from getPath():", filePath)
+        } catch (e) {
+          console.log("getPath() failed:", e)
+        }
+      }
+
+      // Method 5: Check if value has getFiles method (Gdk.FileList)
+      if (!filePath && value && typeof value.getFiles === 'function') {
+        try {
+          const files = value.getFiles()
+          console.log("Got files from getFiles():", files)
+          if (files && files.length > 0) {
+            const file = files[0]
+            if (file && typeof file.getPath === 'function') {
+              filePath = file.getPath()
+            }
+          }
+        } catch (e) {
+          console.log("getFiles() failed:", e)
+        }
+      }
+
+      // Method 6: Check if value is an array
+      if (!filePath && Array.isArray(value)) {
+        console.log("Value is array:", value)
+        for (const item of value) {
+          if (typeof item === 'string') {
+            if (item.startsWith('file://')) {
+              filePath = this.uriToPath(item)
+              break
+            } else if (item.startsWith('/') || item.match(/^[A-Za-z]:/)) {
+              filePath = item
+              break
+            }
+          }
+        }
+      }
+
+      if (!filePath) {
+        label.setLabel('❌ Could not extract file path from drop data')
+        console.log("No file path found after all methods")
+        return false
+      }
+
+      console.log("Final file path:", filePath)
+      return this.loadFile(filePath, label, textView)
+
+    } catch (error: any) {
+      console.error('Drop error:', error)
+      label.setLabel(`❌ Error: ${error.message}`)
+      return false
+    }
+
+
+  }
+
+
+  loadFile(filePath: string, label: any, textView: any): boolean {
+    console.log("Loading file:", filePath)
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      label.setLabel(`❌ File not found: ${path.basename(filePath)}`)
+      return false
+    }
+
+    // Check if it's a text file
+    if (!filePath.toLowerCase().match(/\.(txt|text|log|md|csv|json|xml|yaml|yml|js|ts|py|java|c|cpp|h|hpp|sh|bash)$/)) {
+      label.setLabel('⚠️ Please drop a text file')
+      return false
+    }
+
+    try {
+      // Read the file
+      const content = fs.readFileSync(filePath, 'utf8')
+      const buffer = textView.getBuffer()
+      buffer.setText(content)
+      label.setLabel(`✅ Loaded: ${path.basename(filePath)} (${content.length} characters)`)
+      return true
+    } catch (error: any) {
+      label.setLabel(`❌ Error reading file: ${error.message}`)
+      return false
+    }
+  }
+
+  uriToPath(uri: string): string {
+    let filePath = uri;
+
+    // Remove file:// prefix
+    if (uri.startsWith('file://')) {
+      filePath = decodeURI(uri.replace(/^file:\/\//, ''));
+    }
+
+    // Handle Windows paths
+    if (process.platform === 'win32') {
+      filePath = filePath.replace(/^\//, '').replace(/\//g, '\\');
+    }
+
+    return filePath;
+  }
+
+  openFileChooser(label: any, textView: any) {
+    const dialog = new Gtk.FileChooserDialog({
+      title: 'Select Text File',
+      action: Gtk.FileChooserAction.OPEN,
+    });
+
+
+
+    dialog.addButton('Cancel', Gtk.ResponseType.CANCEL);
+    dialog.addButton('Open', Gtk.ResponseType.OK);
+
+    // Add file filters
+    const filter = Gtk.FileFilter.new();
+    filter.addPattern('*.txt');
+    filter.addPattern('*.text');
+    filter.addPattern('*.log');
+    filter.addPattern('*.md');
+    filter.addPattern('*.csv');
+    filter.addPattern('*.json');
+    filter.addPattern('*.xml');
+    filter.addPattern('*.yaml');
+    filter.addPattern('*.yml');
+    filter.setName('Text Files');
+    dialog.addFilter(filter);
+
+    dialog.connect('response', (responseId: number) => {
+      console.log("dropped dialog:", responseId)
+      if (responseId === Gtk.ResponseType.OK || responseId == 0) {
+
+        const file = dialog.getFile()
+
+        if (file) {
+          const filePath = file?.getPath();
+          if (filePath) {
+            try {
+              const content = fs.readFileSync(filePath, { encoding: 'utf8' });
+              const buffer = textView.getBuffer();
+              buffer.setText(content, content.length);
+              label.setLabel(`✅ Loaded: ${path.basename(filePath)} (${content.length} characters)`);
+
+              console.log(`✅ Loaded: ${path.basename(filePath)} (${content.length} characters)`)
+              console.log("dropped file:", filePath)
+
+
+            } catch (error: any) {
+              console.log("error:", error.message)
+              label.setLabel(`❌ Error: ${error.message}`);
+            }
+          }
+        }
+      }
+      dialog.close()
+    });
+
+    dialog.show();
+  }
+
+  applyStyles() {
+    const cssProvider = new Gtk.CssProvider();
+    const cssData = `
+      frame {
+        background-color: #f5f5f5;
+        border: 2px dashed #bbb;
+        border-radius: 10px;
+        padding: 10px;
+        transition: all 0.3s ease;
+      }
+      frame.drag-over {
+        background-color: #e3f2fd;
+        border-color: #1976d2;
+        border-style: solid;
+      }
+      frame:hover {
+        background-color: #eeeeee;
+        border-color: #999;
+      }
+    `;
+
+    cssProvider.loadFromString(cssData);
+
+    const display = Gdk.Display.getDefault();
+    if (display) {
+      Gtk.StyleContext.addProviderForDisplay(
+        display,
+        cssProvider,
+        Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+      );
+      console.log('CSS styles loaded successfully');
+    } else {
+      console.warn('No display found, CSS styles not applied');
+    }
+  }
+
+
+
+
+
+
 }
+
+
+
+
+
+const dnd = () => {
+  // ---------- The drop zone (a styled Gtk.Box) ----------
+  const dropzone = new Gtk.Box({
+    orientation: Gtk.Orientation.VERTICAL,
+    spacing: 12,
+    hexpand: true,
+    vexpand: true,
+  });
+  dropzone.addCssClass('card');
+  dropzone.addCssClass('dropzone');
+  dropzone.setMarginTop(24);
+  dropzone.setMarginBottom(24);
+  dropzone.setMarginStart(24);
+  dropzone.setMarginEnd(24);
+
+  const icon = new Gtk.Image({ iconName: 'document-open-symbolic', pixelSize: 64 });
+  const heading = new Gtk.Label({ label: 'Drag a file.txt here' });
+  heading.addCssClass('heading');
+  const statusLabel = new Gtk.Label({
+    label: 'Waiting for a drop\u2026',
+    marginStart: 50,
+
+
+  });
+  statusLabel.addCssClass('status');
+  statusLabel.setUseMarkup(true);
+  const contentLabel = new Gtk.Label({
+    label: '',
+    wrap: true,
+    maxWidthChars: 70,
+    halign: Gtk.Align.START,
+    marginStart: 15,
+
+  });
+
+  dropzone.append(icon);
+  dropzone.append(heading);
+  dropzone.append(statusLabel);
+  dropzone.append(contentLabel);
+
+  // ---------- CSS styling (visual feedback while dragging) ----------
+  const css = new Gtk.CssProvider();
+  css.loadFromString(`
+    .dropzone {
+      border: 2px dashed alpha(@accent_color, 0.7);
+      background-color: @card_bg_color;
+    }
+    .dropzone.hover {
+      background-color: alpha(@accent_color, 0.15);
+      border-color: @accent_color;
+    }
+    .heading { font-size: 1.25em; font-weight: 600; }
+    .status  { font-size: 0.9em; color: alpha(@window_fg_color, 0.7); }
+  `);
+
+
+
+
+  const display = Gdk.Display.getDefault();
+  if (display) {
+    Gtk.StyleContext.addProviderForDisplay(
+      display,
+      css,
+      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
+    console.log('CSS styles loaded successfully');
+  } else {
+    console.warn('No display found, CSS styles not applied');
+  }
+
+  // ---------- Drop target ----------
+  // Accept Gio.File (a file dragged from the desktop or a file manager).
+  // ---------- Drop target ----------
+  // Accept Gio.File (a file dragged from the desktop or a file manager).
+  const GFILE_TYPE = GObject.typeFromName('GFile');
+
+  const dropTarget = Gtk.DropTarget.new(
+    GFILE_TYPE,
+    Gdk.DragAction.COPY
+  );
+
+  // Highlight the box while a draggable item hovers over it.
+  dropTarget.on('enter', () => {
+    dropzone.addCssClass('hover');
+    heading.setLabel('Drop it!');
+    return Gdk.DragAction.COPY;
+  });
+
+  dropTarget.on('leave', () => {
+    dropzone.removeCssClass('hover');
+    heading.setLabel('Drag a file.txt here');
+  });
+
+  // ---------- The drop handler ----------
+  dropTarget.on('drop', (value) => {
+    dropzone.removeCssClass('hover');
+    heading.setLabel('File received');
+
+    const file = value.getObject() as any;
+
+    const uri = file?.getUri();
+    const localPath = file?.getPath();
+    const basename = file?.getBasename();
+
+    statusLabel.setMarkup(
+      '<b>Name:</b> ' +
+      GLib.markupEscapeText(basename || '', -1) +
+      '\n <b>Path:</b> ' +
+      GLib.markupEscapeText(localPath || uri || '', -1)
+    );
+
+    // Read the file content
+    let text = '';
+
+    try {
+      if (localPath) {
+        text = fs.readFileSync(localPath, 'utf8');
+      } else {
+        const [ok, contents] = file.loadContents(null);
+
+        if (ok) {
+          text = new TextDecoder('utf-8').decode(contents);
+        }
+      }
+    } catch (e) {
+      text = `Could not read file: ${e}`;
+    }
+
+    const preview = text.length > 800
+      ? text.slice(0, 800) + '\n… (truncated)'
+      : text;
+
+    contentLabel.setLabel(preview);
+
+    return true;
+  });
+
+  dropzone.addController(dropTarget);
+
+  return dropzone
+}
+
+
+
+class DragDropComponent {
+  private dragLabel: any = null;
+  private textView: any = null;
+
+  buildDragDrop(parent: any) {
+    // Main container
+    const mainBox = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 10,
+      marginBottom: 12,
+      marginStart: 12,
+      marginEnd: 12,
+    });
+    parent.append(mainBox);
+
+    // Create drop area - use Frame
+    const dropFrame = new Gtk.Frame();
+    //dropFrame.setShadowType(Gtk.ShadowType.IN);
+
+    const dropBox = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 5,
+      marginStart: 20,
+      marginEnd: 20,
+      marginTop: 20,
+      marginBottom: 20,
+      heightRequest: 100,
+    });
+
+    this.dragLabel = new Gtk.Label({
+      label: '📄 Drag & Drop .txt file here\nor click to select',
+      justify: Gtk.Justification.CENTER,
+      useMarkup: true,
+      vexpand: true,
+      hexpand: true,
+    });
+
+    dropBox.append(this.dragLabel);
+    dropFrame.setChild(dropBox);
+    mainBox.append(dropFrame);
+
+    // Text display area
+    const scrolledWindow = new Gtk.ScrolledWindow({
+      heightRequest: 200,
+      vexpand: true,
+    });
+
+    this.textView = new Gtk.TextView();
+    this.textView.setEditable(false);
+    this.textView.setWrapMode(Gtk.WrapMode.WORD);
+    scrolledWindow.setChild(this.textView);
+    mainBox.append(scrolledWindow);
+
+    // Setup drag and drop
+    console.log("---------------#")
+    //this.setupDragAndDrop(dropBox);
+    dropFrame.addController(this.setupDragAndDrop(dropBox));
+
+    // Setup click handler
+    const clickGesture = new Gtk.GestureClick();
+    clickGesture.connect('pressed', () => {
+      this.openFileChooser();
+    });
+    dropFrame.addController(clickGesture);
+
+    // Apply styles
+    this.applyStyles();
+  }
+
+  setupDragAndDrop(widget: any) {
+    console.log('Setting up drag and drop with DropTarget...');
+
+
+    const GFILE_TYPE = GObject.typeFromName('GFile');
+
+    const dropTarget = Gtk.DropTarget.new(
+      GFILE_TYPE,
+      Gdk.DragAction.COPY
+    );
+
+    // Highlight the box while a draggable item hovers over it.
+    dropTarget.on('enter', () => {
+      widget.addCssClass('hover');
+      return Gdk.DragAction.COPY;
+    });
+
+    dropTarget.on('leave', () => {
+      widget.removeCssClass('hover');
+
+    });
+
+    // ---------- The drop handler ----------
+    dropTarget.on('drop', (value) => {
+      widget.removeCssClass('hover');
+
+
+      const file = value.getObject() as any;
+
+      const uri = file?.getUri();
+      const localPath = file?.getPath();
+      const basename = file?.getBasename();
+
+
+
+      // Read the file content
+      let text = '';
+
+      try {
+        if (localPath) {
+          text = fs.readFileSync(localPath, 'utf8');
+        } else {
+          const [ok, contents] = file.loadContents(null);
+
+          if (ok) {
+            text = new TextDecoder('utf-8').decode(contents);
+          }
+        }
+      } catch (e) {
+        text = `Could not read file: ${e}`;
+      }
+
+      const preview = text.length > 800
+        ? text.slice(0, 800) + '\n… (truncated)'
+        : text;
+
+
+
+      return true;
+    });
+
+
+    // Add the drop target to the widget
+    //widget.addController(dropTarget);
+    console.log('DropTarget setup complete');
+    return dropTarget
+  }
+
+  handleDrop(value: any): boolean {
+    console.log('Handling drop value:', typeof value);
+
+
+    return true
+  }
+
+  loadFile(filePath: string): boolean {
+    console.log('Loading file:', filePath);
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      this.dragLabel.setLabel(`❌ File not found: ${path.basename(filePath)}`);
+      return false;
+    }
+
+    // Check if it's a text file
+    if (!filePath.toLowerCase().match(/\.(txt|text|log|md|csv|json|xml|yaml|yml|js|ts|py|java|c|cpp|h|hpp|sh|bash)$/)) {
+      this.dragLabel.setLabel('⚠️ Please drop a text file');
+      return false;
+    }
+
+    try {
+      const content = fs.readFileSync(filePath, { encoding: 'utf8' });
+      const buffer = this.textView.getBuffer();
+      buffer.setText(content, content.length);
+      this.dragLabel.setLabel(`✅ Loaded: ${path.basename(filePath)} (${content.length} characters)`);
+      return true;
+    } catch (error: any) {
+      this.dragLabel.setLabel(`❌ Error reading file: ${error.message}`);
+      return false;
+    }
+  }
+
+  uriToPath(uri: string): string {
+    let filePath = uri;
+    if (uri.startsWith('file://')) {
+      filePath = decodeURI(uri.replace(/^file:\/\//, ''));
+    }
+    if (process.platform === 'win32') {
+      filePath = filePath.replace(/^\//, '').replace(/\//g, '\\');
+    }
+    return filePath;
+  }
+
+  openFileChooser() {
+    const dialog = new Gtk.FileChooserDialog({
+      title: 'Select Text File',
+      action: Gtk.FileChooserAction.OPEN,
+    });
+
+    dialog.addButton('Cancel', Gtk.ResponseType.CANCEL);
+    dialog.addButton('Open', Gtk.ResponseType.OK);
+
+    const filter = Gtk.FileFilter.new();
+    filter.addPattern('*.txt');
+    filter.addPattern('*.text');
+    filter.addPattern('*.log');
+    filter.addPattern('*.md');
+    filter.addPattern('*.csv');
+    filter.addPattern('*.json');
+    filter.addPattern('*.xml');
+    filter.addPattern('*.yaml');
+    filter.addPattern('*.yml');
+    filter.setName('Text Files');
+    dialog.addFilter(filter);
+
+    dialog.connect('response', (responseId: number) => {
+      if (responseId === Gtk.ResponseType.OK || responseId == 0) {
+        const file = dialog.getFile();
+        if (file) {
+          const filePath = file.getPath();
+          if (filePath) {
+            this.loadFile(filePath);
+          }
+        }
+      }
+      dialog.close();
+    });
+
+    dialog.show();
+  }
+
+  applyStyles() {
+    const cssProvider = new Gtk.CssProvider();
+    const cssData = `
+      frame {
+        background-color: #f5f5f5;
+        border: 2px dashed #bbb;
+        border-radius: 10px;
+        padding: 10px;
+        transition: all 0.3s ease;
+        min-height: 100px;
+      }
+      frame.drag-over {
+        background-color: #e3f2fd;
+        border-color: #1976d2;
+        border-style: solid;
+      }
+      frame:hover {
+        background-color: #eeeeee;
+        border-color: #999;
+      }
+    `;
+
+    cssProvider.loadFromString(cssData);
+
+    const display = Gdk.Display.getDefault();
+    if (display) {
+      Gtk.StyleContext.addProviderForDisplay(
+        display,
+        cssProvider,
+        Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+      );
+      console.log('CSS styles loaded successfully');
+    }
+  }
+}
+
+// Usage
+// const component = new DragDropComponent();
+// component.buildDragDrop(yourParentContainer);
