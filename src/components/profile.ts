@@ -1581,9 +1581,6 @@ class DndComponent {
   dropzone.append(textView);
 
 
-
-
-
   return dropzone
 }
 
