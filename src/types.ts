@@ -84,3 +84,19 @@ export type AUDIT_LOG_TYPE = {
    details?: {} | any
    created_at?: string
 }
+
+
+export type HISTORY_TYPE = {
+   id?: string
+   booking_id?: string
+   changed_by?: string // user
+   action_type?: "create" | "update" | "remove",
+   previous_status?: string
+   new_status?: string
+   remarks?: any
+   created_at?: string
+
+   user?: USER
+   booking?: BOOKING_TYPE
+
+}
