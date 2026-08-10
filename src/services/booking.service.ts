@@ -16,16 +16,20 @@ updated_at
 import { IService } from "../interfaces.js";
 import { BOOKING_TYPE } from "../types.js";
 import { AuditLogService } from "./auditlogs.service.js";
+import { HistoryService } from "./history.service.js";
 import { StorageService } from "./storage.service.js";
 import { v4 as uuidv4 } from 'uuid';
+import { UserService } from "./user.service.js";
 
 export class BookingService implements IService<BOOKING_TYPE> {
 
     private auditLogService: AuditLogService
+    private historyService: HistoryService
 
     constructor() {
 
         this.auditLogService = new AuditLogService()
+        this.historyService = new HistoryService(new UserService(), this)
 
     }
 
@@ -57,13 +61,21 @@ export class BookingService implements IService<BOOKING_TYPE> {
             user_id: data.user_id
         })
 
+        this.historyService.create({
+            changed_by: booking.user_id,
+            booking_id: booking.id,
+            new_status: booking.status,
+            action_type: "create",
+
+        })
+
 
         return booking
     }
     async update(id: string, data: BOOKING_TYPE) {
 
-        if (!id) {
-            console.log("cannot update booking because no id")
+        if (!id || !data.customer_id || !data.user_id) {
+            console.log("cannot update booking because id, customer_id, and user_id are required!")
             return false
         }
 
@@ -78,7 +90,7 @@ export class BookingService implements IService<BOOKING_TYPE> {
         data.updated_at = new Date().toISOString()
         console.log("[BookingService] update() :", id, data);
 
-        const one = await this.getById(data.id!!)
+        const one: BOOKING_TYPE = await this.getById(data.id!!)
         if (!one) {
             console.log("cannot update trip because not found")
             return
@@ -93,6 +105,15 @@ export class BookingService implements IService<BOOKING_TYPE> {
             action_type: "update",
             description: "updated booking",
             user_id: data.user_id
+        })
+
+        this.historyService.create({
+            changed_by: one.user_id,
+            booking_id: one.id,
+            new_status: data.status,
+            previous_status: one.status,
+            action_type: "update",
+
         })
 
         return await StorageService.updateInJson("storage", "bookings", data)
@@ -128,7 +149,7 @@ export class BookingService implements IService<BOOKING_TYPE> {
             return false
         }
 
-        const one = await this.getById(id)
+        const one: BOOKING_TYPE = await this.getById(id)
         if (!one) {
             console.log("no booking found!")
             return false
@@ -144,6 +165,15 @@ export class BookingService implements IService<BOOKING_TYPE> {
             action_type: "remove",
             description: "removed booking",
             user_id: id
+        })
+
+        this.historyService.create({
+            changed_by: one.user_id,
+            booking_id: one.id,
+            /*new_status: data.status,
+            previous_status: one.status,*/
+            action_type: "remove",
+
         })
 
         return true
