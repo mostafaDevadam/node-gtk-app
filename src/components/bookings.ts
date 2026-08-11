@@ -40,6 +40,7 @@ export class BookingsComponent {
   display_trips: string[] = []
 
   selectedTripId: string = ""
+  selectedTrip: TRIP_TYPE | null = null
 
   customerId: string = ""
 
@@ -174,7 +175,7 @@ export class BookingsComponent {
 
     this.submit_btn_cust.on("activated", async () => {
 
-      
+
       if (this.isEdit && this.selectedBooking?.customer) {
         // update customer
         const obj: CUSTOMER_TYPE = {
@@ -190,13 +191,11 @@ export class BookingsComponent {
         console.log("edit customer")
         obj.id = this.selectedBooking.customer.id
         const result = await this.customerService.update(obj.id!!, obj)
-        if(!result){
-            this.app.showToast("cannot update customer")
-            return
+        if (!result) {
+          this.app.showToast("cannot update customer")
+          return
         }
         this.app.showToast("updated customer successfully!")
-
-
 
       } else {
         // create customer
@@ -220,12 +219,7 @@ export class BookingsComponent {
 
       }
 
-
       //
-
-
-
-
 
     })
 
@@ -235,6 +229,12 @@ export class BookingsComponent {
     side_group_booking.setTitle("Booking")
     side_group.add(side_group_booking)
 
+    // seat_number 
+    this.input_seat_number = new Adw.EntryRow({
+      title: "Seat Number",
+      inputPurpose: Gtk.InputPurpose.NUMBER,
+    })//.connect("", () => {})
+
     // dropdown-list for trips
     this.trips_list = await this.tripService.getAll()
     // Handle fallback if database returns an empty payload array
@@ -242,6 +242,7 @@ export class BookingsComponent {
 
       // Set fallback baseline ID
       this.selectedTripId = this.trips_list[0].id!!;
+      this.selectedTrip = this.trips_list[0]
 
       // 2. Extract only the human-readable 'name' strings for the visual model
       this.display_trips = this.trips_list.map(m => m.destination!!.toString());
@@ -271,39 +272,64 @@ export class BookingsComponent {
         if (selectedIndex >= 0 && selectedIndex < this.trips_list.length) {
           const selectedData = this.trips_list[selectedIndex];
 
+          this.selectedTrip = selectedData
+
           // Zero type errors, direct structural access
           console.log(`Saved Database ID: ${selectedData.id}`);
           console.log(`Display Text Value: ${selectedData.destination}`);
 
           this.selectedTripId = selectedData.id!!
+
+          /*const available_seats = parseInt(this.selectedTrip?.available_seats!!)
+          const val = parseInt(this.input_seat_number.getText())
+          if (available_seats < val) {
+            console.log("error! : max is ", available_seats, ", seat_number:", val)
+            this.input_seat_number.setText(this.selectedTrip.available_seats)
+          }*/
+
+
         }
       });
 
       //console.log("---------------------------this.selected_trip:", this.selected_trip);
 
       // 5. Look up the index match 
-      /*if (this.selected_trip) {
-        const defaultIndex = this.bus_list.findIndex(item => item.id === this.selected_trip?.bus_id);
-        console.log("---------------------------defaultIndex:", defaultIndex);
-
-        if (defaultIndex !== -1) {
-          
-        }
-      }*/
+     
     }
 
 
-
-
-
-
-
-
     // seat_number 
-    this.input_seat_number = new Adw.EntryRow({
-      title: "Seat Number",
-      inputPurpose: Gtk.InputPurpose.NUMBER,
-    })
+    this.input_seat_number.connect("notify::text", () => {
+      const textVal = this.input_seat_number.getText();
+      const val = parseInt(textVal);
+
+      // If the input is empty or NaN, let the user type freely
+      if (isNaN(val)) return;
+
+      console.log("seat_number:", val);
+
+      if (this.selectedTrip) {
+        const available_seats = parseInt(this.selectedTrip?.available_seats ?? "0");
+
+        // Fixed comparison: error only if user types MORE than available seats
+        if (val > available_seats) {
+          console.log("error! : max is ", available_seats, ", seat_number:", val);
+
+          // Prevent recursive loop by checking if text is already set to max
+          const maxStr = available_seats.toString();
+          if (textVal !== maxStr) {
+            this.input_seat_number.setText(maxStr);
+          }
+        } else {
+          console.log({ available_seats, seat_number: val });
+        }
+
+      } else {
+        console.log("no selectedTrip");
+      }
+    });
+
+
     side_group_booking.add(this.input_seat_number)
 
 
@@ -385,11 +411,6 @@ export class BookingsComponent {
       }
     });
 
-
-
-
-
-
     // 
     // submit_btn
     this.submit_booking_btn = new Adw.ActionRow({
@@ -401,10 +422,6 @@ export class BookingsComponent {
 
 
     this.submit_booking_btn.on("activated", async () => {
-
-
-
-
 
       if (this.isEdit && this.selectedBooking) {
 
@@ -424,11 +441,6 @@ export class BookingsComponent {
         }
         console.log("this.submit_booking_btn edit booking:", obj)
 
-
-
-
-
-
         console.log("edit booking")
         const result = this.bookingService.update(obj.id!!, obj)
         if (!result) {
@@ -437,9 +449,6 @@ export class BookingsComponent {
         }
 
         this.app.showToast("Updated booking successfully!")
-
-
-
 
       } else {
         // create booking
@@ -477,14 +486,7 @@ export class BookingsComponent {
 
       }
 
-
-
-
-
     })
-
-
-
 
 
     //
@@ -547,7 +549,6 @@ export class BookingsComponent {
       this.selectedBooking = item
 
 
-
       this.selectedBooking.customer = await this.customerService.getById(item.customer_id)
 
       console.log("selected booking:", item, this.selectedBooking)
@@ -577,6 +578,8 @@ export class BookingsComponent {
 
         const l1 = this.trips_list.findIndex(fl => fl.id == item.trip_id)
         this.comboRow_trips.setSelected(l1);
+
+        this.selectedTrip = this.trips_list.filter(fl => fl.id == item.trip_id)[0]
 
         const k1 = this.booking_status_list.findIndex(fl => fl == item.status)
         this.comboRow_booking_status.setSelected(k1)
