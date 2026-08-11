@@ -162,6 +162,7 @@ export class TripsComponent {
   trip_service: TripService
   bus_service: BusService
   selectedBusId: string = ""
+  selectedBus: BUS | null = null
   currentStatusValue: string = ""
   bus_list: BUS[] = [];
   comboRow_bus: any
@@ -228,6 +229,11 @@ export class TripsComponent {
 
     // 1. Define your typed array of structured objects
 
+    this.input_available_seats = new Adw.EntryRow({
+      title: "Available Seats",
+      inputPurpose: Gtk.InputPurpose.NUMBER,
+    })
+
 
 
 
@@ -243,6 +249,7 @@ export class TripsComponent {
 
       // Set fallback baseline ID
       this.selectedBusId = this.bus_list[0].id!!;
+      this.selectedBus = this.bus_list[0]
 
       // 2. Extract only the human-readable 'name' strings for the visual model
       this.displayNames = this.bus_list.map(m => m.bus_number!!.toString());
@@ -271,6 +278,7 @@ export class TripsComponent {
         // Bounds check protection 
         if (selectedIndex >= 0 && selectedIndex < this.bus_list.length) {
           const selectedData = this.bus_list[selectedIndex];
+           this.selectedBus = selectedData
 
           // Zero type errors, direct structural access
           console.log(`Saved Database ID: ${selectedData.id}`);
@@ -370,12 +378,42 @@ export class TripsComponent {
     edit_side_group.add(this.input_destination)
 
 
+    //available_seats
+     this.input_available_seats.connect("notify::text", () => {
+      const textVal = this.input_available_seats.getText();
+      const val = parseInt(textVal);
 
-    this.input_available_seats = new Adw.EntryRow({
-      title: "Available Seats",
-      inputPurpose: Gtk.InputPurpose.NUMBER,
-    })
+      // If the input is empty or NaN, let the user type freely
+      if (isNaN(val)) return;
+
+      
+
+      if (this.selectedBus) {
+        const chair_count = this.selectedBus?.chair_count ?? 0
+
+        // Fixed comparison: error only if user types MORE than available seats
+        if (val > chair_count) {
+          console.log("error! : max is ", chair_count, ", available_seats:", val);
+
+          // Prevent recursive loop by checking if text is already set to max
+          const maxStr = chair_count.toString();
+          if (textVal !== maxStr) {
+            this.input_available_seats.setText(maxStr);
+          }
+        } else {
+          console.log({ chair_count, seat_number: val });
+        }
+
+      } else {
+        console.log("no selectedTrip");
+      }
+    });
+
+    
     edit_side_group.add(this.input_available_seats)
+
+
+    // submit_btn
 
     this.submit_btn = new Adw.ActionRow({
       title: "save",
@@ -557,6 +595,7 @@ export class TripsComponent {
           const l1 = this.bus_list.findIndex(fl => fl.id == item.bus_id)
           //console.log("################# l1:", l1, this.bus_list[l1], this.displayNames[l1])
           this.comboRow_bus.setSelected(l1);
+          this.selectedBus = this.bus_list.filter(fl => fl.id == item.bus_id)[0]
           //
           this.arrival_time.setDefaultValue(item.arrival_time!!)
           this.departure_time.setDefaultValue(item.departure_time!!)
