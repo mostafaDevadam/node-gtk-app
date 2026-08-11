@@ -1488,235 +1488,235 @@ const loadFile = (filePath: string, dragLabel: any, textView: any): boolean => {
 
 class DndComponent {
 
- dnd = () => {
-  // ---------- The drop zone (a styled Gtk.Box) ----------
-  const dropzone = new Gtk.Box({
-    orientation: Gtk.Orientation.VERTICAL,
-    spacing: 12,
-    hexpand: true,
-    vexpand: true,
-  });
-  dropzone.addCssClass('card');
-  dropzone.addCssClass('dropzone');
-  dropzone.setMarginTop(24);
-  dropzone.setMarginBottom(24);
-  dropzone.setMarginStart(24);
-  dropzone.setMarginEnd(24);
+  dnd = () => {
+    // ---------- The drop zone (a styled Gtk.Box) ----------
+    const dropzone = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 12,
+      hexpand: true,
+      vexpand: true,
+    });
+    dropzone.addCssClass('card');
+    dropzone.addCssClass('dropzone');
+    dropzone.setMarginTop(24);
+    dropzone.setMarginBottom(24);
+    dropzone.setMarginStart(24);
+    dropzone.setMarginEnd(24);
 
-  const icon = new Gtk.Image({ iconName: 'document-open-symbolic', pixelSize: 64 });
-  const heading = new Gtk.Label({ label: 'Drag a file.txt here' });
-  heading.addCssClass('heading');
-  const statusLabel = new Gtk.Label({
-    label: 'Waiting for a drop\u2026',
-    marginStart: 50,
+    const icon = new Gtk.Image({ iconName: 'document-open-symbolic', pixelSize: 64 });
+    const heading = new Gtk.Label({ label: 'Drag a file.txt here' });
+    heading.addCssClass('heading');
+    const statusLabel = new Gtk.Label({
+      label: 'Waiting for a drop\u2026',
+      marginStart: 50,
 
 
-  });
-  statusLabel.addCssClass('status');
-  statusLabel.setUseMarkup(true);
-  const contentLabel = new Gtk.Label({
-    label: '',
-    wrap: true,
-    maxWidthChars: 70,
-    halign: Gtk.Align.START,
-    marginStart: 15,
+    });
+    statusLabel.addCssClass('status');
+    statusLabel.setUseMarkup(true);
+    const contentLabel = new Gtk.Label({
+      label: '',
+      wrap: true,
+      maxWidthChars: 70,
+      halign: Gtk.Align.START,
+      marginStart: 15,
 
-  });
+    });
 
-  dropzone.append(icon);
-  dropzone.append(heading);
-  dropzone.append(statusLabel);
-  dropzone.append(contentLabel);
+    dropzone.append(icon);
+    dropzone.append(heading);
+    dropzone.append(statusLabel);
+    dropzone.append(contentLabel);
 
-  // ---------- CSS styling (visual feedback while dragging) ----------
-  const css = new Gtk.CssProvider();
-  css.loadFromString(`
-    .dropzone {
-      border: 2px dashed alpha(@accent_color, 0.7);
-      background-color: @card_bg_color;
+    // ---------- CSS styling (visual feedback while dragging) ----------
+    const css = new Gtk.CssProvider();
+    css.loadFromString(`
+      .dropzone {
+        border: 2px dashed alpha(@accent_color, 0.7);
+        background-color: @card_bg_color;
+      }
+      .dropzone.hover {
+        background-color: alpha(@accent_color, 0.15);
+        border-color: @accent_color;
+      }
+      .heading { font-size: 1.25em; font-weight: 600; }
+      .status  { font-size: 0.9em; color: alpha(@window_fg_color, 0.7); }
+    `);
+
+
+
+
+    const display = Gdk.Display.getDefault();
+
+    if (display) {
+      Gtk.StyleContext.addProviderForDisplay(
+        display,
+        css,
+        Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+      );
+      console.log('CSS styles loaded successfully');
+    } else {
+      console.warn('No display found, CSS styles not applied');
     }
-    .dropzone.hover {
-      background-color: alpha(@accent_color, 0.15);
-      border-color: @accent_color;
-    }
-    .heading { font-size: 1.25em; font-weight: 600; }
-    .status  { font-size: 0.9em; color: alpha(@window_fg_color, 0.7); }
-  `);
+
+    // ---------- Drop target ----------
+    // Accept Gio.File (a file dragged from the desktop or a file manager).
+
+    this.dnd_target(dropzone, heading, statusLabel, contentLabel)
+
+    const textView = new Gtk.TextView();
+    textView.setEditable(false);
+    textView.setWrapMode(Gtk.WrapMode.WORD);
+    textView.setMarginStart(15)
 
 
+    // Setup click handler
+    const clickGesture = new Gtk.GestureClick();
+    clickGesture.connect('pressed', () => {
+      this.openFileChooser(statusLabel, textView);
+    });
+    dropzone.addController(clickGesture);
+
+    //dropzone.append(statusLabel);
+    dropzone.append(textView);
 
 
-  const display = Gdk.Display.getDefault();
-
-  if (display) {
-    Gtk.StyleContext.addProviderForDisplay(
-      display,
-      css,
-      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-    );
-    console.log('CSS styles loaded successfully');
-  } else {
-    console.warn('No display found, CSS styles not applied');
+    return dropzone
   }
 
-  // ---------- Drop target ----------
-  // Accept Gio.File (a file dragged from the desktop or a file manager).
+  dnd_target = (dropzone: any, heading: any, statusLabel: any, contentLabel: any) => {
 
-  this.dnd_target(dropzone, heading, statusLabel, contentLabel)
+    const GFILE_TYPE = GObject.typeFromName('GFile');
 
-  const textView = new Gtk.TextView();
-  textView.setEditable(false);
-  textView.setWrapMode(Gtk.WrapMode.WORD);
-  textView.setMarginStart(15)
-
-
-  // Setup click handler
-  const clickGesture = new Gtk.GestureClick();
-  clickGesture.connect('pressed', () => {
-    this.openFileChooser(statusLabel, textView);
-  });
-  dropzone.addController(clickGesture);
-
-  //dropzone.append(statusLabel);
-  dropzone.append(textView);
-
-
-  return dropzone
-}
-
- dnd_target = (dropzone: any, heading: any, statusLabel: any, contentLabel: any) => {
-
-  const GFILE_TYPE = GObject.typeFromName('GFile');
-
-  const dropTarget = Gtk.DropTarget.new(
-    GFILE_TYPE,
-    Gdk.DragAction.COPY
-  );
-
-  // Highlight the box while a draggable item hovers over it.
-  dropTarget.on('enter', () => {
-    dropzone.addCssClass('hover');
-    heading.setLabel('Drop it!');
-    return Gdk.DragAction.COPY;
-  });
-
-  dropTarget.on('leave', () => {
-    dropzone.removeCssClass('hover');
-    heading.setLabel('Drag a file.txt here');
-  });
-
-  // ---------- The drop handler ----------
-  dropTarget.on('drop', (value) => {
-    dropzone.removeCssClass('hover');
-    heading.setLabel('File received');
-
-    const file = value.getObject() as any;
-
-    const uri = file?.getUri();
-    const localPath = file?.getPath();
-    const basename = file?.getBasename();
-
-    statusLabel.setMarkup(
-      '<b>Name:</b> ' +
-      GLib.markupEscapeText(basename || '', -1) +
-      '\n <b>Path:</b> ' +
-      GLib.markupEscapeText(localPath || uri || '', -1)
+    const dropTarget = Gtk.DropTarget.new(
+      GFILE_TYPE,
+      Gdk.DragAction.COPY
     );
 
-    // Read the file content
-    let text = '';
+    // Highlight the box while a draggable item hovers over it.
+    dropTarget.on('enter', () => {
+      dropzone.addCssClass('hover');
+      heading.setLabel('Drop it!');
+      return Gdk.DragAction.COPY;
+    });
+
+    dropTarget.on('leave', () => {
+      dropzone.removeCssClass('hover');
+      heading.setLabel('Drag a file.txt here');
+    });
+
+    // ---------- The drop handler ----------
+    dropTarget.on('drop', (value) => {
+      dropzone.removeCssClass('hover');
+      heading.setLabel('File received');
+
+      const file = value.getObject() as any;
+
+      const uri = file?.getUri();
+      const localPath = file?.getPath();
+      const basename = file?.getBasename();
+
+      statusLabel.setMarkup(
+        '<b>Name:</b> ' +
+        GLib.markupEscapeText(basename || '', -1) +
+        '\n <b>Path:</b> ' +
+        GLib.markupEscapeText(localPath || uri || '', -1)
+      );
+
+      // Read the file content
+      let text = '';
+
+      try {
+        if (localPath) {
+          text = fs.readFileSync(localPath, 'utf8');
+        } else {
+          const [ok, contents] = file.loadContents(null);
+
+          if (ok) {
+            text = new TextDecoder('utf-8').decode(contents);
+          }
+        }
+      } catch (e) {
+        text = `Could not read file: ${e}`;
+      }
+
+      const preview = text.length > 800
+        ? text.slice(0, 800) + '\n… (truncated)'
+        : text;
+
+      contentLabel.setLabel(preview);
+
+      return true;
+    });
+
+    dropzone.addController(dropTarget);
+
+  }
+
+  openFileChooser = (dragLabel: any, textView: any) => {
+    const dialog = new Gtk.FileChooserDialog({
+      title: 'Select Text File',
+      action: Gtk.FileChooserAction.OPEN,
+    });
+
+    dialog.addButton('Cancel', Gtk.ResponseType.CANCEL);
+    dialog.addButton('Open', Gtk.ResponseType.OK);
+
+    const filter = Gtk.FileFilter.new();
+    filter.addPattern('*.txt');
+    filter.addPattern('*.text');
+    filter.addPattern('*.log');
+    filter.addPattern('*.md');
+    filter.addPattern('*.csv');
+    filter.addPattern('*.json');
+    filter.addPattern('*.xml');
+    filter.addPattern('*.yaml');
+    filter.addPattern('*.yml');
+    filter.setName('Text Files');
+    dialog.addFilter(filter);
+
+    dialog.connect('response', (responseId: number) => {
+      if (responseId === Gtk.ResponseType.OK || responseId == 0) {
+        const file = dialog.getFile();
+        if (file) {
+          const filePath = file.getPath();
+          if (filePath) {
+            this.loadFile(filePath, dragLabel, textView);
+          }
+        }
+      }
+      dialog.close();
+    });
+
+    dialog.show();
+  }
+
+  loadFile = (filePath: string, dragLabel: any, textView: any): boolean => {
+    console.log('Loading file:', filePath);
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      dragLabel.setLabel(`❌ File not found: ${path.basename(filePath)}`);
+      return false;
+    }
+
+    // Check if it's a text file
+    if (!filePath.toLowerCase().match(/\.(txt|text|log|md|csv|json|xml|yaml|yml|js|ts|py|java|c|cpp|h|hpp|sh|bash)$/)) {
+      dragLabel.setLabel('⚠️ Please drop a text file');
+      return false;
+    }
 
     try {
-      if (localPath) {
-        text = fs.readFileSync(localPath, 'utf8');
-      } else {
-        const [ok, contents] = file.loadContents(null);
-
-        if (ok) {
-          text = new TextDecoder('utf-8').decode(contents);
-        }
-      }
-    } catch (e) {
-      text = `Could not read file: ${e}`;
+      const content = fs.readFileSync(filePath, { encoding: 'utf8' });
+      const buffer = textView.getBuffer();
+      buffer.setText(content, content.length);
+      dragLabel.setLabel(`✅ Loaded: ${path.basename(filePath)} (${content.length} characters)`);
+      return true;
+    } catch (error: any) {
+      dragLabel.setLabel(`❌ Error reading file: ${error.message}`);
+      return false;
     }
-
-    const preview = text.length > 800
-      ? text.slice(0, 800) + '\n… (truncated)'
-      : text;
-
-    contentLabel.setLabel(preview);
-
-    return true;
-  });
-
-  dropzone.addController(dropTarget);
-
-}
-
- openFileChooser = (dragLabel: any, textView: any) => {
-  const dialog = new Gtk.FileChooserDialog({
-    title: 'Select Text File',
-    action: Gtk.FileChooserAction.OPEN,
-  });
-
-  dialog.addButton('Cancel', Gtk.ResponseType.CANCEL);
-  dialog.addButton('Open', Gtk.ResponseType.OK);
-
-  const filter = Gtk.FileFilter.new();
-  filter.addPattern('*.txt');
-  filter.addPattern('*.text');
-  filter.addPattern('*.log');
-  filter.addPattern('*.md');
-  filter.addPattern('*.csv');
-  filter.addPattern('*.json');
-  filter.addPattern('*.xml');
-  filter.addPattern('*.yaml');
-  filter.addPattern('*.yml');
-  filter.setName('Text Files');
-  dialog.addFilter(filter);
-
-  dialog.connect('response', (responseId: number) => {
-    if (responseId === Gtk.ResponseType.OK || responseId == 0) {
-      const file = dialog.getFile();
-      if (file) {
-        const filePath = file.getPath();
-        if (filePath) {
-          this.loadFile(filePath, dragLabel, textView);
-        }
-      }
-    }
-    dialog.close();
-  });
-
-  dialog.show();
-}
-
- loadFile = (filePath: string, dragLabel: any, textView: any): boolean => {
-  console.log('Loading file:', filePath);
-
-  // Check if file exists
-  if (!fs.existsSync(filePath)) {
-    dragLabel.setLabel(`❌ File not found: ${path.basename(filePath)}`);
-    return false;
   }
-
-  // Check if it's a text file
-  if (!filePath.toLowerCase().match(/\.(txt|text|log|md|csv|json|xml|yaml|yml|js|ts|py|java|c|cpp|h|hpp|sh|bash)$/)) {
-    dragLabel.setLabel('⚠️ Please drop a text file');
-    return false;
-  }
-
-  try {
-    const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-    const buffer = textView.getBuffer();
-    buffer.setText(content, content.length);
-    dragLabel.setLabel(`✅ Loaded: ${path.basename(filePath)} (${content.length} characters)`);
-    return true;
-  } catch (error: any) {
-    dragLabel.setLabel(`❌ Error reading file: ${error.message}`);
-    return false;
-  }
-}
 
 
 
