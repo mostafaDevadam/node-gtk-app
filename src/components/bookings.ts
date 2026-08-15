@@ -294,7 +294,7 @@ export class BookingsComponent {
       //console.log("---------------------------this.selected_trip:", this.selected_trip);
 
       // 5. Look up the index match 
-     
+
     }
 
 
@@ -425,6 +425,13 @@ export class BookingsComponent {
 
       if (this.isEdit && this.selectedBooking) {
 
+
+
+        if (!this.selectedTrip || !this.selectedTripId) {
+          console.log("cannot update because selectedTripId is required!")
+          return
+        }
+
         const obj: BOOKING_TYPE = {
           id: this.selectedBooking.id,
           customer_id: this.selectedBooking.customer_id,
@@ -442,6 +449,27 @@ export class BookingsComponent {
         console.log("this.submit_booking_btn edit booking:", obj)
 
         console.log("edit booking")
+
+        /*if(this.selectedTrip && this.selectedTripId){
+           const seat_number = parseInt(obj.seat_number!!)
+           const available_seats = parseInt(this.selectedTrip.available_seats!!)
+          if( this.input_seat_number.getText() !== this.selectedBooking.seat_number && seat_number < available_seats){
+            const obj_trip: TRIP_TYPE = {
+              ...this.selectedTrip,
+              available_seats: (available_seats-1).toString(),
+
+            }
+            this.tripService.update(this.selectedTripId, obj_trip)
+
+             
+
+          }
+          else{
+            console.log("seat_number is out of range of selectedTrip.available_seats")
+          }
+        }*/
+
+
         const result = this.bookingService.update(obj.id!!, obj)
         if (!result) {
           this.app.showToast("Cannot Update booking!")
@@ -455,6 +483,11 @@ export class BookingsComponent {
 
         if (!this.customerId || !this.userId) {
           console.log("Cannot create booking because no customerId or userId")
+          return
+        }
+
+        if (!this.selectedTrip || !this.selectedTripId) {
+          console.log("cannot create booking because selectedTripId is required!")
           return
         }
 
@@ -472,6 +505,25 @@ export class BookingsComponent {
         }
 
         console.log("this.submit_booking_btn create booking:", obj)
+
+        if (this.selectedTrip && this.selectedTripId) {
+          const seat_number = parseInt(obj.seat_number!!)
+          const available_seats = parseInt(this.selectedTrip.available_seats!!)
+          if (seat_number < available_seats) {
+            const obj_trip: TRIP_TYPE = {
+              ...this.selectedTrip,
+              available_seats: (available_seats - 1).toString(),
+            }
+            this.tripService.update(this.selectedTripId, obj_trip)
+            
+
+          } else {
+            console.log("seat_number is out of range of selectedTrip.available_seats")
+            return 
+          }
+        }
+
+
 
         const result = await this.bookingService.create(obj)
         console.log("success created a new booking:", result)
@@ -578,6 +630,8 @@ export class BookingsComponent {
 
         const l1 = this.trips_list.findIndex(fl => fl.id == item.trip_id)
         this.comboRow_trips.setSelected(l1);
+
+        this.selectedTripId = item.trip_id
 
         this.selectedTrip = this.trips_list.filter(fl => fl.id == item.trip_id)[0]
 
