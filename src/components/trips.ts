@@ -386,8 +386,6 @@ export class TripsComponent {
       // If the input is empty or NaN, let the user type freely
       if (isNaN(val)) return;
 
-      
-
       if (this.selectedBus) {
         const chair_count = this.selectedBus?.chair_count ?? 0
 
