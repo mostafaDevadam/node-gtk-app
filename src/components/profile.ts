@@ -10,6 +10,9 @@ import { AuditLogService } from '../services/auditlogs.service.js'
 import { UserService } from '../services/user.service.js'
 import { USER } from '../types.js'
 
+import * as pdfLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import os from 'os';
+
 export class ProfileComponent {
 
   app: any
@@ -274,7 +277,7 @@ export class ProfileComponent {
     //dd.buildDragDrop(box)
 
     //box.append(dnd())
-    const dnd_instance = new DndComponent()
+    const dnd_instance = new DndComponent(this.app)
     box.append(dnd_instance.dnd())
 
 
@@ -1488,14 +1491,35 @@ const loadFile = (filePath: string, dragLabel: any, textView: any): boolean => {
 
 class DndComponent {
 
+  preview_btn: any
+  filePath: string = ""
+  pdfContent: string = ""
+  app: any
+
+  constructor(app: any) {
+    this.app = app
+
+  }
+
+  main = () => {
+  }
+
+
   dnd = () => {
     // ---------- The drop zone (a styled Gtk.Box) ----------
+    const container = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 12,
+      hexpand: true,
+      vexpand: true,
+    });
     const dropzone = new Gtk.Box({
       orientation: Gtk.Orientation.VERTICAL,
       spacing: 12,
       hexpand: true,
       vexpand: true,
     });
+    container.append(dropzone)
     dropzone.addCssClass('card');
     dropzone.addCssClass('dropzone');
     dropzone.setMarginTop(24);
@@ -1541,6 +1565,7 @@ class DndComponent {
       }
       .heading { font-size: 1.25em; font-weight: 600; }
       .status  { font-size: 0.9em; color: alpha(@window_fg_color, 0.7); }
+      .pl: {padding-left: 20px; }
     `);
 
 
@@ -1562,12 +1587,14 @@ class DndComponent {
     // ---------- Drop target ----------
     // Accept Gio.File (a file dragged from the desktop or a file manager).
 
-    this.dnd_target(dropzone, heading, statusLabel, contentLabel)
+
 
     const textView = new Gtk.TextView();
     textView.setEditable(false);
     textView.setWrapMode(Gtk.WrapMode.WORD);
     textView.setMarginStart(15)
+
+    this.dnd_target(container, dropzone, heading, statusLabel, contentLabel, textView)
 
 
     // Setup click handler
@@ -1580,11 +1607,25 @@ class DndComponent {
     //dropzone.append(statusLabel);
     dropzone.append(textView);
 
+    this.preview_btn = new Gtk.Button({ label: "Preview", visible: false })
+    container.append(this.preview_btn)
 
-    return dropzone
+    this.preview_btn.connect("clicked", () => {
+      if (this.filePath && this.pdfContent) {
+        //this.app.showAlert("Preview", this.pdfContent)
+        //this.app.showPdfViewerWindow(this.filePath)
+        this.showPdfTextWindow(this.filePath, this.app.window)
+      }
+    })
+
+
+
+
+    //return dropzone
+    return container
   }
 
-  dnd_target = (dropzone: any, heading: any, statusLabel: any, contentLabel: any) => {
+  dnd_target = (container: any, dropzone: any, heading: any, statusLabel: any, contentLabel: any, textView: any) => {
 
     const GFILE_TYPE = GObject.typeFromName('GFile');
 
@@ -1616,35 +1657,55 @@ class DndComponent {
       const localPath = file?.getPath();
       const basename = file?.getBasename();
 
-      statusLabel.setMarkup(
-        '<b>Name:</b> ' +
-        GLib.markupEscapeText(basename || '', -1) +
-        '\n <b>Path:</b> ' +
-        GLib.markupEscapeText(localPath || uri || '', -1)
-      );
+      /*if (basename.endsWith(".txt")) {
 
-      // Read the file content
-      let text = '';
+        statusLabel.setMarkup(
+          '<b>Name:</b> ' +
+          GLib.markupEscapeText(basename || '', -1) +
+          '\n <b>Path:</b> ' +
+          GLib.markupEscapeText(localPath || uri || '', -1)
+        );
 
-      try {
-        if (localPath) {
-          text = fs.readFileSync(localPath, 'utf8');
-        } else {
-          const [ok, contents] = file.loadContents(null);
+        // Read the file content
+        let text = '';
 
-          if (ok) {
-            text = new TextDecoder('utf-8').decode(contents);
+        try {
+          if (localPath) {
+            text = fs.readFileSync(localPath, { encoding: 'utf8' });
+          } else {
+            const [ok, contents] = file.loadContents(null);
+
+            if (ok) {
+              text = new TextDecoder('utf-8').decode(contents);
+            }
           }
+        } catch (e) {
+          text = `Could not read file: ${e}`;
         }
-      } catch (e) {
-        text = `Could not read file: ${e}`;
-      }
 
-      const preview = text.length > 800
-        ? text.slice(0, 800) + '\n… (truncated)'
-        : text;
+        const preview = text.length > 800
+          ? text.slice(0, 800) + '\n… (truncated)'
+          : text;
 
-      contentLabel.setLabel(preview);
+        contentLabel.setLabel(preview);
+
+      } else if (basename.endsWith(".pdf")) {
+
+        statusLabel.setMarkup(
+          '<b>Name:</b> ' +
+          GLib.markupEscapeText(basename || '', -1) +
+          '\n <b>Path:</b> ' +
+          GLib.markupEscapeText(localPath || uri || '', -1)
+        );
+      }*/
+
+
+      this.filePath = localPath
+      this.loadFile(localPath, statusLabel, textView)
+
+
+
+
 
       return true;
     });
@@ -1691,7 +1752,7 @@ class DndComponent {
     dialog.show();
   }
 
-  loadFile = (filePath: string, dragLabel: any, textView: any): boolean => {
+  loadFile = async (filePath: string, dragLabel: any, textView: any): Promise<boolean> => {
     console.log('Loading file:', filePath);
 
     // Check if file exists
@@ -1701,12 +1762,43 @@ class DndComponent {
     }
 
     // Check if it's a text file
-    if (!filePath.toLowerCase().match(/\.(txt|text|log|md|csv|json|xml|yaml|yml|js|ts|py|java|c|cpp|h|hpp|sh|bash)$/)) {
-      dragLabel.setLabel('⚠️ Please drop a text file');
+    if (!filePath.toLowerCase().match(/\.(txt|pdf|text|log|md|csv|json|xml|yaml|yml|js|ts|py|java|c|cpp|h|hpp|sh|bash)$/)) {
+      dragLabel.setLabel('⚠️ Please drop a text or pdf file');
       return false;
     }
 
+    if (filePath.toLowerCase().endsWith(".pdf")) {
+
+      dragLabel.setLabel(`✅ Loaded: ${path.basename(filePath)} and cannot display content of pdf`);
+      try {
+        //const content = fs.readFileSync(filePath, { encoding: 'utf8' });
+        //const buffer = textView.getBuffer();
+        //console.log("pdf content:", content)
+
+
+
+
+        const buffer = textView.getBuffer();
+        const content = await this.getPdfContent(filePath)
+        //console.log("content:", content)
+        buffer.setText(content, content.length);
+        this.pdfContent = content
+
+        dragLabel.setLabel(`✅ Loaded: ${path.basename(filePath)} (${content.length} characters)`);
+
+        this.preview_btn.setVisible(true)
+
+        return true;
+
+      } catch (error) {
+        return false
+
+      }
+
+    }
+
     try {
+      this.preview_btn.setVisible(false)
       const content = fs.readFileSync(filePath, { encoding: 'utf8' });
       const buffer = textView.getBuffer();
       buffer.setText(content, content.length);
@@ -1719,6 +1811,154 @@ class DndComponent {
   }
 
 
+
+  getPdfContent = async (filePath: string): Promise<string> => {
+
+    try {
+      const data = new Uint8Array(fs.readFileSync(filePath));
+      const loadingTask = pdfLib.getDocument({ data });
+      const pdfDocument = await loadingTask.promise;
+
+      let fullText = "";
+      let formattedOutput = "";
+
+      // Loop through all pages to extract text content
+      for (let i = 1; i <= pdfDocument.numPages; i++) {
+        const page = await pdfDocument.getPage(i);
+        const textContent = await page.getTextContent();
+
+        // Concatenate text items for this page
+        //const pageText = textContent.items.map((item: any) => item.str).join(" ");
+        //fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+
+        // Print header on a new line
+        formattedOutput += `\n=== PAGE ${i} ===\n`;
+
+        // Map each text item to its own line
+        const pageLines = textContent.items.map((item: any) => item.str);
+        formattedOutput += pageLines.join("\n") + "\n";
+      }
+
+      console.log("Extracted PDF Text:\n", fullText);
+
+      // Display the text inside your label or a text buffer
+      // (Truncate display string if it's too long for a single label)
+      //label.setText(fullText.length > 200 ? fullText.substring(0, 200) + "..." : fullText);
+      //return fullText.length > 300 ? fullText.substring(0, 300) + "..." : fullText
+      return formattedOutput.length > 300 ? formattedOutput.substring(0, 300) + "..." : formattedOutput
+
+    } catch (error) {
+      console.error("Error reading PDF text:", error);
+      //label.setText("Failed to read PDF text");
+      return "Failed to read PDF text"
+    }
+
+  }
+
+
+
+
+  async showPdfTextWindow(pdfPath: string, parentWindow: any) {
+    try {
+      const data = new Uint8Array(fs.readFileSync(pdfPath));
+
+      // Pass basic parameters to avoid standard font lookup crashes in Node
+      const loadingTask = pdfLib.getDocument({
+        data,
+        useSystemFonts: true
+      });
+
+      /*const pdfDocument = await loadingTask.promise;
+      let formattedOutput = "";
+  
+      // Loop through all pages and compile clean, line-by-line text
+      for (let i = 1; i <= pdfDocument.numPages; i++) {
+        const page = await pdfDocument.getPage(i);
+        const textContent = await page.getTextContent();
+        
+        formattedOutput += `\n=== PAGE ${i} ===\n`;
+        const pageLines = textContent.items.map((item: any) => item.str);
+        formattedOutput += pageLines.join("\n") + "\n";
+      }*/
+
+      // 1. Create GTK Window Viewer
+      const window = new Gtk.Window({
+        title: `PDF Reader - ${path.basename(pdfPath)}`,
+        modal: true,
+        transientFor: parentWindow,
+        defaultWidth: 650,
+        defaultHeight: 750,
+      });
+
+      // 2. Scrolled Container for multi-page support
+      const scrolledWindow = new Gtk.ScrolledWindow({
+        vexpand: true,
+        hexpand: true,
+        marginTop: 10, marginBottom: 10, marginStart: 10, marginEnd: 10,
+      });
+
+      // 3. Multi-line Text View Buffer
+      const textView = new Gtk.TextView({
+        editable: false,
+        cursorVisible: false,
+        wrapMode: Gtk.WrapMode.WORD,
+        vexpand: true,
+        hexpand: true, 
+        cssClasses: ['card', 'pl']
+        
+      });
+
+      const textBuffer = textView.getBuffer();
+      textBuffer.setText(this.pdfContent, this.pdfContent.length);
+
+      // 2. Create Layout Container
+      const mainBox = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
+        spacing: 6,
+        marginTop: 10,
+        marginBottom: 10,
+        marginStart: 10,
+        marginEnd: 10,
+      });
+
+
+      // 3. Control Toolbar Box (Top)
+      const toolbarBox = new Gtk.Box({
+        orientation: Gtk.Orientation.HORIZONTAL,
+        spacing: 6,
+      });
+      mainBox.append(toolbarBox);
+
+
+
+      mainBox.append(textView)
+
+
+      const prevButton = new Gtk.Button({ label: "◄ Prev" });
+      const nextButton = new Gtk.Button({ label: "Next ►" });
+      const pageLabel = new Gtk.Label({ label: `Page 1 of ${0}` });
+
+      const zoomInButton = new Gtk.Button({ label: "Zoom +" });
+      const zoomOutButton = new Gtk.Button({ label: "Zoom -" });
+
+      toolbarBox.append(prevButton);
+      toolbarBox.append(nextButton);
+      toolbarBox.append(pageLabel);
+      toolbarBox.append(zoomInButton);
+      toolbarBox.append(zoomOutButton);
+
+
+
+      scrolledWindow.setChild(mainBox);
+      window.setChild(scrolledWindow);
+
+      // 4. Open the viewer window
+      window.present();
+
+    } catch (error) {
+      console.error("Error reading PDF text content:", error);
+    }
+  }
 
 }
 
@@ -1879,10 +2119,7 @@ class DragDropComponent {
     }
 
     // Check if it's a text file
-    if (!filePath.toLowerCase().match(/\.(txt|text|log|md|csv|json|xml|yaml|yml|js|ts|py|java|c|cpp|h|hpp|sh|bash)$/)) {
-      this.dragLabel.setLabel('⚠️ Please drop a text file');
-      return false;
-    }
+
 
     try {
       const content = fs.readFileSync(filePath, { encoding: 'utf8' });
@@ -1895,6 +2132,8 @@ class DragDropComponent {
       return false;
     }
   }
+
+
 
   uriToPath(uri: string): string {
     let filePath = uri;

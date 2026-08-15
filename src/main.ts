@@ -13,6 +13,7 @@
  */
 
 import { Adw, GLib, Gio, Gtk, Gdk, GObject } from './index.js'
+import * as pdfLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 
 import { styles } from 'node-gtk/styles'
@@ -1195,6 +1196,120 @@ class App extends Adw.Application {
     dialog.addResponse("ok", "OK");
     dialog.present(this.window); // Pass your main Gtk.Window instance here
   }
+
+
+
+async showPdfViewerWindow(pdfPath: string) {
+  try {
+    const data = new Uint8Array(fs.readFileSync(pdfPath));
+    const loadingTask = pdfLib.getDocument({ data });
+    const pdfDocument = await loadingTask.promise;
+
+    let currentPage = 1;
+    let currentZoom = 1.5; // Initial zoom scale
+    const totalPages = pdfDocument.numPages;
+
+    // 1. Create Main Window
+    const window = new Gtk.Window({
+      title: `PDF Viewer - ${path.basename(pdfPath)}`,
+      modal: true,
+      transientFor: this.window,
+      defaultWidth: 700,
+      defaultHeight: 800,
+    });
+
+    // 2. Create Layout Container
+    const mainBox = new Gtk.Box({
+      orientation: Gtk.Orientation.VERTICAL,
+      spacing: 6,
+      marginTop: 10, 
+      marginBottom: 10, 
+      marginStart: 10, 
+      marginEnd: 10,
+    });
+    window.setChild(mainBox);
+
+    // 3. Control Toolbar Box (Top)
+    const toolbarBox = new Gtk.Box({
+      orientation: Gtk.Orientation.HORIZONTAL,
+      spacing: 6,
+    });
+    mainBox.append(toolbarBox);
+
+    const prevButton = new Gtk.Button({ label: "◄ Prev" });
+    const nextButton = new Gtk.Button({ label: "Next ►" });
+    const pageLabel = new Gtk.Label({ label: `Page 1 of ${totalPages}` });
+    
+    const zoomInButton = new Gtk.Button({ label: "Zoom +" });
+    const zoomOutButton = new Gtk.Button({ label: "Zoom -" });
+
+    toolbarBox.append(prevButton);
+    toolbarBox.append(nextButton);
+    toolbarBox.append(pageLabel);
+    toolbarBox.append(zoomInButton);
+    toolbarBox.append(zoomOutButton);
+
+    // 4. Scrolled Image Display Area (Center)
+    const scrolledWindow = new Gtk.ScrolledWindow({
+      vexpand: true,
+      hexpand: true,
+    });
+    mainBox.append(scrolledWindow);
+
+    const picture = new Gtk.Picture({
+      halign: Gtk.Align.CENTER,
+      valign: Gtk.Align.CENTER,
+    });
+    scrolledWindow.setChild(picture);
+
+    // Function to render and update the current page display
+    async function renderPage(pageNum: number, scale: number) {
+      if (pageNum < 1 || pageNum > totalPages) return;
+      
+      const page = await pdfDocument.getPage(pageNum);
+      const viewport = page.getViewport({ scale });
+
+      // Create a lightweight text/graphics instruction wrapper or render fallback.
+      // Alternatively, export to a temp PNG file via node canvas if needed, 
+      // or use PDF.js built-in SVG/Canvas rendering streams.
+      
+      // Update UI label
+      pageLabel.setText(`Page ${pageNum} of ${totalPages}`);
+      currentPage = pageNum;
+
+      // Note: If you want to paint pixels directly, render to a temp file using 
+      // a lightweight backend context and load via: picture.setFilename(tempImagePath);
+    }
+
+    // Hook up Control Event Listeners
+    prevButton.connect("clicked", () => {
+      if (currentPage > 1) renderPage(currentPage - 1, currentZoom);
+    });
+
+    nextButton.connect("clicked", () => {
+      if (currentPage < totalPages) renderPage(currentPage + 1, currentZoom);
+    });
+
+    zoomInButton.connect("clicked", () => {
+      currentZoom += 0.25;
+      renderPage(currentPage, currentZoom);
+    });
+
+    zoomOutButton.connect("clicked", () => {
+      if (currentZoom > 0.5) {
+        currentZoom -= 0.25;
+        renderPage(currentPage, currentZoom);
+      }
+    });
+
+    // Initial load
+    await renderPage(currentPage, currentZoom);
+    window.present();
+
+  } catch (error) {
+    console.error("Error opening PDF viewer:", error);
+  }
+}
 
 
 }
