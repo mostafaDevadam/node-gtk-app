@@ -140,7 +140,7 @@ export class TripsComponent {
         // Bounds check protection 
         if (selectedIndex >= 0 && selectedIndex < this.bus_list.length) {
           const selectedData = this.bus_list[selectedIndex];
-           this.selectedBus = selectedData
+          this.selectedBus = selectedData
 
           // Zero type errors, direct structural access
           console.log(`Saved Database ID: ${selectedData.id}`);
@@ -241,7 +241,7 @@ export class TripsComponent {
 
 
     //available_seats
-     this.input_available_seats.connect("notify::text", () => {
+    this.input_available_seats.connect("notify::text", () => {
       const textVal = this.input_available_seats.getText();
       const val = parseInt(textVal);
 
@@ -269,8 +269,58 @@ export class TripsComponent {
       }
     });
 
-    
+
     edit_side_group.add(this.input_available_seats)
+
+    // progress-bar
+    //this.addProgressBar(edit_side_group)
+    const lbl = new Gtk.Label({ label: "asd" })
+    edit_side_group.add(lbl)
+    this.setupDragToChangeValue(sideBox, lbl)
+
+
+    /*const bx = new Gtk.Box({
+      vexpand: true,
+      hexpand: true,
+
+    })
+    //edit_side_group.add(bx)
+    sideBox.append(bx)
+
+    const dragGesture = new Gtk.GestureDrag();
+    dragGesture.setPropagationPhase(Gtk.PropagationPhase.CAPTURE);
+    let baseValue = 50;
+    let minValue = 0;
+    let maxValue = 100;
+
+    // 3. Track updates live as the mouse moves
+    dragGesture.connect("drag-update", (_gesture: any, offsetX: number, _offsetY: number) => {
+      // 1 pixel of drag = 0.5 units change
+      let newValue = Math.round(baseValue + (offsetX * 0.5));
+
+      // Clamp bounds
+      if (newValue < minValue) newValue = minValue;
+      if (newValue > maxValue) newValue = maxValue;
+
+      // Update label text immediately
+      if (lbl && typeof lbl.setText === 'function') {
+        lbl.setText(String(newValue));
+      }
+    });
+
+    // 4. Lock in the baseline when dragging finishes
+    dragGesture.connect("drag-end", (_gesture: any, offsetX: number, _offsetY: number) => {
+      let finalValue = Math.round(baseValue + (offsetX * 0.5));
+      if (finalValue < minValue) finalValue = minValue;
+      if (finalValue > maxValue) finalValue = maxValue;
+      baseValue = finalValue; // Save new baseline
+    });
+
+
+
+    sideBox.addController(dragGesture)*/
+
+
 
 
     // submit_btn
@@ -489,7 +539,224 @@ export class TripsComponent {
     this.arrival_time.setDefaultValue("")
     this.departure_time.setDefaultValue("")
     this.comboRow_status.setSelected(0)
-     this.comboRow_bus.setSelected(0);
+    this.comboRow_bus.setSelected(0);
+  }
+
+
+  addProgressBar(parentBox: any) {
+    // 1. Create the Progress Bar widget
+    const progressBar = new Gtk.ProgressBar({
+      showText: true,
+      text: "Waiting for action...",
+      fraction: 0.0,
+      marginTop: 10,
+      marginBottom: 10,
+      marginStart: 10,
+      marginEnd: 10,
+    });
+
+    parentBox.add(progressBar);
+
+    // 2. Example: Simulate a task progress incrementing over time
+    let currentProgress = 0.0;
+
+    const timerId = GLib.timeoutAdd(GLib.PRIORITY_DEFAULT, 1000, () => {
+      currentProgress += 0.05;
+
+      if (currentProgress <= 1.0) {
+        // Update percentage mode fraction (0.0 to 1.0)
+        progressBar.setFraction(currentProgress);
+        progressBar.setText(`Processing... ${Math.round(currentProgress * 100)}%`);
+        return true; // Continue timer
+      } else {
+        // Task complete
+        progressBar.setText("Complete!");
+        return false; // Stop timer
+      }
+    });
+
+    return progressBar;
+  }
+
+
+
+
+  setupDragToChangeValue_(widget: any, label: any) {
+    let baseValue = 50;
+    let minValue = 0;
+    let maxValue = 100;
+
+    // Optional: Auto-create progress bar if needed
+    const progressBar = new Gtk.ProgressBar({
+      showText: true,
+      text: `${baseValue}%`,
+      fraction: baseValue / 100.0,
+      marginTop: 5,
+      marginBottom: 5,
+    });
+
+    if (widget && typeof widget.append === 'function') {
+      widget.append(progressBar);
+    }
+
+    const dragGesture = new Gtk.GestureDrag();
+    dragGesture.setPropagationPhase(Gtk.PropagationPhase.CAPTURE);
+
+    // Track updates live as the mouse moves (Increased sensitivity multiplier from 0.5 to 1.5)
+    dragGesture.connect("drag-update", (_gesture: any, offsetX: number, _offsetY: number) => {
+      let newValue = Math.round(baseValue + (offsetX * 1.5));
+
+      if (newValue < minValue) newValue = minValue;
+      if (newValue > maxValue) newValue = maxValue;
+
+      if (label && typeof label.setText === 'function') {
+        label.setText(String(newValue));
+      }
+
+      progressBar.setFraction(newValue / 100.0);
+      progressBar.setText(`${newValue}%`);
+    });
+
+    // FIXED: Save the final value into baseValue so you can drag backward/forward continuously
+    dragGesture.connect("drag-end", (_gesture: any, offsetX: number, _offsetY: number) => {
+      let finalValue = Math.round(baseValue + (offsetX * 2.5));
+      if (finalValue < minValue) finalValue = minValue;
+      if (finalValue > maxValue) finalValue = maxValue;
+
+      baseValue = finalValue; // Permanently updates the baseline for the next drag!
+    });
+
+    widget.addController(dragGesture);
+  }
+
+
+
+  setupDragToChangeValue__(widget: any, label: any) {
+  let baseValue = 50;
+  let startX = 0;
+  let isDragging = false;
+
+  // Auto-create progress bar if needed
+  const progressBar = new Gtk.ProgressBar({
+    showText: true,
+    text: `${baseValue}%`,
+    fraction: baseValue / 100.0,
+    /*marginTop: 20,
+    marginBottom: 20,
+     marginEnd: 20,
+    marginStart: 20,*/
+    cssClasses: ["pbar"],
+
+  });
+
+  if (widget && typeof widget.append === 'function') {
+    widget.append(progressBar);
+  }
+
+  // 1. Click controller tracks when you press down to drag
+  const clickController = new Gtk.GestureClick();
+  clickController.connect("pressed", (_gesture: any, _nPress: number, x: number, _y: number) => {
+    isDragging = true;
+    startX = x;
+  });
+
+  clickController.connect("released", () => {
+    isDragging = false;
+    // Save current label value as the new baseline when released
+     // baseValue = parseInt(label.getLabel() || "50", 10);
+  });
+
+  // 2. Motion controller handles movement in BOTH directions (Left & Right)
+  const motionController = new Gtk.EventControllerMotion();
+  motionController.connect("motion", (_controller: any, x: number, _y: number) => {
+    if (!isDragging) return;
+
+    // Moving left gives a negative deltaX; moving right gives a positive deltaX
+    const deltaX = x - startX;
+    // startX = x;
+
+
+    let newValue = Math.round(baseValue + (deltaX * 1.5));
+
+    // Clamp bounds between 0 and 100
+    if (newValue < 0) newValue = 0;
+    if (newValue > 100) newValue = 100;
+
+    // Update UI elements instantly
+    if (label && typeof label.setLabel === 'function') {
+      label.setLabel(String(newValue));
+    }
+
+    progressBar.setFraction(newValue / 100.0);
+    progressBar.setText(`${newValue}%`);
+  });
+
+  // Attach controllers to widget
+  widget.addController(clickController);
+  widget.addController(motionController);
+}
+
+setupDragToChangeValue(widget: any, label: any) {
+    let baseValue = 50;
+    let startX = 0;
+    let isDragging = false;
+
+    // Auto-create progress bar if needed
+    const progressBar = new Gtk.ProgressBar({
+      showText: true,
+      text: `${baseValue}%`,
+      fraction: baseValue / 100.0,
+      cssClasses: ["pbar"],
+    });
+
+    if (widget && typeof widget.append === 'function') {
+      widget.append(progressBar);
+    }
+
+    // 1. Click controller tracks when you press down to drag
+    const clickController = new Gtk.GestureClick();
+    clickController.connect("pressed", (_gesture: any, _nPress: number, x: number, _y: number) => {
+      isDragging = true;
+      startX = x;
+      // Capture the current value from label as the starting baseline for this drag session
+      if (label && typeof label.getLabel === 'function') {
+        const currentText = label.getLabel();
+        if (currentText) {
+          baseValue = parseInt(currentText, 10) || 50;
+        }
+      }
+    });
+
+    clickController.connect("released", () => {
+      isDragging = false;
+    });
+
+    // 2. Motion controller handles movement in BOTH directions (Left & Right)
+    const motionController = new Gtk.EventControllerMotion();
+    motionController.connect("motion", (_controller: any, x: number, _y: number) => {
+      if (!isDragging) return;
+
+      // Moving left gives a negative deltaX; moving right gives a positive deltaX
+      const deltaX = x - startX;
+
+      let newValue = Math.round(baseValue + (deltaX * 1.5));
+
+      // Clamp bounds between 0 and 100
+      if (newValue < 0) newValue = 0;
+      if (newValue > 100) newValue = 100;
+
+      // Update UI elements instantly
+      if (label && typeof label.setLabel === 'function') {
+        label.setLabel(String(newValue));
+      }
+
+      progressBar.setFraction(newValue / 100.0);
+      progressBar.setText(`${newValue}%`);
+    });
+
+    // Attach controllers to widget
+    widget.addController(clickController);
+    widget.addController(motionController);
   }
 
 
