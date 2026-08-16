@@ -181,4 +181,40 @@ export class BookingService implements IService<BOOKING_TYPE> {
 
     }
 
+    async getAllByTripId(tripId: string): Promise<BOOKING_TYPE[] | any[]> {
+        const all = await this.getAll()
+         //console.log("[BookingService] getAllByTripId all:", all)
+
+        /*const result =  all.map((m: BOOKING_TYPE) => {
+            if(m != undefined && tripId == m.trip_id){
+                return m
+            }
+        })*/
+
+            let result: any[] = []
+
+        for(let i  of all){
+
+            if(i && i != undefined && i.trip_id === tripId){
+                result.push(i)
+            }
+
+        }
+
+       // console.log("[BookingService] getAllByTripId result:", result)
+
+        return result
+
+
+    }
+
+    async getSeatNumbers(tripId: string): Promise<number[]> {
+        const all = await this.getAllByTripId(tripId)
+        //console.log("[BookingService] getSeatNumbers all:", all)
+        const result = all.map((m: BOOKING_TYPE) => parseInt(m?.seat_number!!))
+        //console.log("[BookingService] getSeatNumbers result:", result)
+
+        return result
+    }
+
 }
