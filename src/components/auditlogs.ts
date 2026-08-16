@@ -1,4 +1,5 @@
 
+import { formatDate } from '../common.js';
 import { UserRole } from '../enums.js';
 import { Adw, GLib, Gio, Gtk } from '../index.js'
 import { AuditLogService } from '../services/auditlogs.service.js';
@@ -119,14 +120,14 @@ export class AuditLogsComponent {
       this.view_row_description.setSubtitle(`${this.selectedAuditLog.description}`)
 
 
-      this.view_row_created_at.setSubtitle(`${this.selectedAuditLog.created_at}`)
+      this.view_row_created_at.setSubtitle(`${formatDate(this.selectedAuditLog.created_at!!)}`)
 
    }
 
    build_card(item: AUDIT_LOG_TYPE, side_title: any, sideBox: any, listBox: any) {
       const row = new Adw.ActionRow()
       row.setTitle(`Audit-Log-${item.action_type}-${item.state}`)
-      row.setSubtitle(item.created_at!!)
+      row.setSubtitle(`Date: ${formatDate(item.created_at!!)}`)
       row.setActivatable(true)
       const icon_prefix = Gtk.Image.newFromIconName("emblem-documents")
       row.addPrefix(icon_prefix)

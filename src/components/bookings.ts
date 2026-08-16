@@ -61,7 +61,8 @@ export class BookingsComponent {
 
   comboRow_seat_number: any
 
-  comboRow_seat_number_options: number[] | any[] = [] //Array.from({ length: 30 }, (_, index) => index + 1)
+  comboRow_seat_number_options: number[] | any[] = [] 
+  //Array.from({ length: 30 }, (_, index) => index + 1)
 
   selectedSeatNumber: string = ""
 
@@ -679,8 +680,8 @@ export class BookingsComponent {
 
   build_card(item: BOOKING_TYPE, side_title: any, sideBox: any, listBox: any) {
     const row = new Adw.ActionRow()
-    row.setTitle(`Booking-${item.booking_number}-${item.status}`)
-    row.setSubtitle(item.booking_date!!)
+    row.setTitle(`Booking-${item.booking_number?.split("-")[0]}`)
+    row.setSubtitle(`Status: ${item.status}\nDate: ${item.booking_date!!}`)
     row.setActivatable(true)
     const icon_prefix = Gtk.Image.newFromIconName("emblem-documents")
     row.addPrefix(icon_prefix)

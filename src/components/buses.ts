@@ -1,3 +1,4 @@
+import { formatDate } from '../common.js';
 import { UserRole } from '../enums.js';
 import { Adw, GLib, Gio, Gtk } from '../index.js'
 import { BusService } from '../services/bus.service.js';
@@ -366,6 +367,7 @@ export class BusesComponent {
   build_card(item: BUS, side_title: any, sideBox: any, listBox: any, edit_side_group: any, view_side_group: any, isAdmin: boolean, isEdit: boolean) {
     const row = new Adw.ActionRow()
     row.setTitle(`Bus-${item.bus_number}`)
+    row.setSubtitle(`Chairs: ${item.chair_count}\nDate: ${formatDate(item.created_at!!)}`)
     row.setActivatable(true)
     const icon_prefix = Gtk.Image.newFromIconName("emblem-documents")
     row.addPrefix(icon_prefix)
