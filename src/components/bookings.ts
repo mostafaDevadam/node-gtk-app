@@ -60,7 +60,7 @@ export class BookingsComponent {
 
   comboRow_seat_number: any
 
-  comboRow_seat_number_options : number[] | any[] = [] //Array.from({ length: 30 }, (_, index) => index + 1)
+  comboRow_seat_number_options: number[] | any[] = [] //Array.from({ length: 30 }, (_, index) => index + 1)
 
   selectedSeatNumber: string = ""
 
@@ -274,7 +274,7 @@ export class BookingsComponent {
        });*/
 
       // 4. Safely pull data on change using the native index
-      this.comboRow_trips.on('notify::selected', () => {
+      this.comboRow_trips.on('notify::selected', async () => {
         const selectedIndex = this.comboRow_trips.getSelected();
 
         // Bounds check protection 
@@ -291,8 +291,17 @@ export class BookingsComponent {
 
           const available_seats = parseInt(this.selectedTrip?.available_seats!!)
 
-        
+
           this.comboRow_seat_number_options = Array.from({ length: available_seats }, (_, index) => index + 1)
+          
+
+          // get seats_numbers from booking-service
+          const l = await this.bookingService.getSeatNumbers(this.selectedTrip?.id ?? this.selectedTripId)
+
+          console.log("l bookign seat_numbers:", l)
+
+          this.comboRow_seat_number_options = this.swap_list(this.comboRow_seat_number_options, l)
+
           const display_str = this.comboRow_seat_number_options.map((m) => m.toString())
           const stringList = Gtk.StringList.new(display_str);
           this.comboRow_seat_number.setModel(stringList)
@@ -320,8 +329,17 @@ export class BookingsComponent {
       const available_seats = parseInt(this.selectedTrip?.available_seats!!)
       //this.comboRow_seat_number_options.filter((fl) => fl <= available_seats)
       this.comboRow_seat_number_options = Array.from({ length: available_seats }, (_, index) => index + 1)
-    }else {
-       this.comboRow_seat_number_options = Array.from({ length: 30 }, (_, index) => index + 1)
+
+      // get seats_numbers from booking-service
+      const l = await this.bookingService.getSeatNumbers(this.selectedTrip?.id ?? this.selectedTripId)
+
+      console.log("l bookign seat_numbers:", l)
+
+      this.comboRow_seat_number_options = this.swap_list(this.comboRow_seat_number_options, l)
+
+
+    } else {
+      this.comboRow_seat_number_options = Array.from({ length: 30 }, (_, index) => index + 1)
 
     }
     const display_str = this.comboRow_seat_number_options.map((m) => m.toString())
@@ -490,7 +508,7 @@ export class BookingsComponent {
 
     this.submit_booking_btn.on("activated", async () => {
 
-      if(!this.isEdit && !this.customerId){
+      if (!this.isEdit && !this.customerId) {
         this.app.showToast("You should first create the customer!")
         return
       }
@@ -717,11 +735,11 @@ export class BookingsComponent {
         if (this.selectedTrip) {
           this.selectedSeatNumber = this.selectedBooking.seat_number!!
           const available_seats = parseInt(this.selectedTrip?.available_seats!!)
-          
+
           // fill
           this.comboRow_seat_number_options = Array.from({ length: available_seats ?? 30 }, (_, index) => index + 1)
           // dispaly selected
-          const c1 = this.comboRow_seat_number_options.findIndex(fl => fl ==  this.selectedSeatNumber)
+          const c1 = this.comboRow_seat_number_options.findIndex(fl => fl == this.selectedSeatNumber)
           this.comboRow_seat_number.setSelected(c1)
 
 
@@ -759,11 +777,30 @@ export class BookingsComponent {
 
     this.booking_date.setDefaultValue("")
 
-     this.comboRow_trips.setSelected(0)
+    this.comboRow_trips.setSelected(0)
     this.comboRow_booking_status.setSelected(0)
     this.comboRow_payment_status.setSelected(0)
     this.comboRow_seat_number.setSelected(0)
 
+  }
+
+
+  swap_list(source: any[], target: any[]): any[] {
+
+    console.log("swap_list:", { target })
+
+    let temp: any = []
+
+    for (let i of source) {
+
+      if (!target.includes(i)) {
+        console.log("swap_list i :", i)
+        temp.push(i)
+      }
+
+    }
+
+    return temp
   }
 
 }
