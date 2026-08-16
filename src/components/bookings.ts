@@ -58,6 +58,12 @@ export class BookingsComponent {
 
   isEdit: boolean = false
 
+  comboRow_seat_number: any
+
+  comboRow_seat_number_options : number[] | any[] = [] //Array.from({ length: 30 }, (_, index) => index + 1)
+
+  selectedSeatNumber: string = ""
+
   constructor(app: any) {
     this.app = app
     //this.userId = this.app.active_user.id
@@ -235,6 +241,9 @@ export class BookingsComponent {
       inputPurpose: Gtk.InputPurpose.NUMBER,
     })//.connect("", () => {})
 
+    // comboRow_seat_number
+    this.comboRow_seat_number = new Adw.ComboRow();
+
     // dropdown-list for trips
     this.trips_list = await this.tripService.getAll()
     // Handle fallback if database returns an empty payload array
@@ -280,6 +289,14 @@ export class BookingsComponent {
 
           this.selectedTripId = selectedData.id!!
 
+          const available_seats = parseInt(this.selectedTrip?.available_seats!!)
+
+        
+          this.comboRow_seat_number_options = Array.from({ length: available_seats }, (_, index) => index + 1)
+          const display_str = this.comboRow_seat_number_options.map((m) => m.toString())
+          const stringList = Gtk.StringList.new(display_str);
+          this.comboRow_seat_number.setModel(stringList)
+
           /*const available_seats = parseInt(this.selectedTrip?.available_seats!!)
           const val = parseInt(this.input_seat_number.getText())
           if (available_seats < val) {
@@ -297,8 +314,58 @@ export class BookingsComponent {
 
     }
 
+    // dropdown-seat_number
+    //this.comboRow_seat_number_options = Array.from({ length: 30 }, (_, index) => index + 1)
+    if (this.selectedTrip) {
+      const available_seats = parseInt(this.selectedTrip?.available_seats!!)
+      //this.comboRow_seat_number_options.filter((fl) => fl <= available_seats)
+      this.comboRow_seat_number_options = Array.from({ length: available_seats }, (_, index) => index + 1)
+    }else {
+       this.comboRow_seat_number_options = Array.from({ length: 30 }, (_, index) => index + 1)
 
-    // seat_number 
+    }
+    const display_str = this.comboRow_seat_number_options.map((m) => m.toString())
+    const stringList = Gtk.StringList.new(display_str);
+
+    let selected = ""
+
+    // 2. Instantiate the ComboRow
+
+    side_group_booking.add(this.comboRow_seat_number);
+    this.comboRow_seat_number.setTitle('Seat Number');
+    this.comboRow_seat_number.setSubtitle('Select seat number');
+    this.comboRow_seat_number.setModel(stringList); // Map the data model to the Adw row
+
+    // 3. Optional: Enable search filter tracking within the row overlay popup
+    this.comboRow_seat_number.setEnableSearch(true);
+
+    // 4. Capture selection updates using property notification signatures
+    this.comboRow_seat_number.on('notify::selected', () => {
+      const selectedIndex = this.comboRow_seat_number.getSelected();
+
+      // Extract the StringObject wrapper safely
+      const selectedItem = this.comboRow_seat_number.getSelectedItem()!!
+
+
+
+      if (selectedItem) {
+        // Assert the generic object as a Gtk.StringObject
+        const stringObj = selectedItem as any
+        const stringValue = stringObj.getString();
+
+
+        console.log(`Seat number picked item #${selectedIndex}: "${stringValue}"`);
+
+        selected = stringValue
+
+        this.selectedSeatNumber = stringValue
+
+      }
+    });
+
+
+
+    // input seat_number 
     this.input_seat_number.connect("notify::text", () => {
       const textVal = this.input_seat_number.getText();
       const val = parseInt(textVal);
@@ -423,6 +490,11 @@ export class BookingsComponent {
 
     this.submit_booking_btn.on("activated", async () => {
 
+      if(!this.isEdit && !this.customerId){
+        this.app.showToast("You should first create the customer!")
+        return
+      }
+
       if (this.isEdit && this.selectedBooking) {
 
 
@@ -515,11 +587,11 @@ export class BookingsComponent {
               available_seats: (available_seats - 1).toString(),
             }
             this.tripService.update(this.selectedTripId, obj_trip)
-            
+
 
           } else {
             console.log("seat_number is out of range of selectedTrip.available_seats")
-            return 
+            return
           }
         }
 
@@ -642,6 +714,30 @@ export class BookingsComponent {
         this.comboRow_payment_status.setSelected(p1)
 
 
+        if (this.selectedTrip) {
+          this.selectedSeatNumber = this.selectedBooking.seat_number!!
+          const available_seats = parseInt(this.selectedTrip?.available_seats!!)
+          
+          // fill
+          this.comboRow_seat_number_options = Array.from({ length: available_seats ?? 30 }, (_, index) => index + 1)
+          // dispaly selected
+          const c1 = this.comboRow_seat_number_options.findIndex(fl => fl ==  this.selectedSeatNumber)
+          this.comboRow_seat_number.setSelected(c1)
+
+
+          /*const available_seats = parseInt(this.selectedTrip?.available_seats!!)
+
+          this.comboRow_seat_number_options.filter((fl) => fl <= available_seats)
+          const display_str = this.comboRow_seat_number_options.map((m) => m.toString())
+
+          const stringList = Gtk.StringList.new(display_str);
+          this.comboRow_seat_number.setModel(stringList)*/
+
+        }
+
+
+
+
 
 
 
@@ -663,8 +759,10 @@ export class BookingsComponent {
 
     this.booking_date.setDefaultValue("")
 
+     this.comboRow_trips.setSelected(0)
     this.comboRow_booking_status.setSelected(0)
     this.comboRow_payment_status.setSelected(0)
+    this.comboRow_seat_number.setSelected(0)
 
   }
 
