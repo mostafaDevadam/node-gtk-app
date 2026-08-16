@@ -18,12 +18,36 @@ button.suggested-action.pill {
   padding-right: 24px;
 }
 
-.view_stack{
+.view_stack {
   /*background-color: brown;
   color: #fff;*/
   font-size: small;
 }
 
-.pl{
+.pl {
   padding-left: 20px;
+}
+
+.pbar {
+  /*height: 20px;
+  background-color: brown;
+  color: aliceblue;*/
+}
+
+progressbar {
+  /* Background track container styles */
+}
+
+progressbar trough {
+  min-height: 18px;
+  background-color: #2c3e50;
+  /* Dark background trough color */
+  border-radius: 6px;
+}
+
+progressbar progress {
+  min-height: 18px;
+  background-color: #3498db;
+  /* Bright active fill color (e.g., Blue) */
+  border-radius: 6px;
 }
