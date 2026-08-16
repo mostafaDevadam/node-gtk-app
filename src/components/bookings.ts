@@ -1,4 +1,5 @@
 
+import { parse } from 'path'
 import { Adw, GLib, Gio, Gtk } from '../index.js'
 import { BookingService } from '../services/booking.service.js'
 import { CustomerService } from '../services/customer.service.js'
@@ -293,7 +294,7 @@ export class BookingsComponent {
 
 
           this.comboRow_seat_number_options = Array.from({ length: available_seats }, (_, index) => index + 1)
-          
+
 
           // get seats_numbers from booking-service
           const l = await this.bookingService.getSeatNumbers(this.selectedTrip?.id ?? this.selectedTripId)
@@ -529,7 +530,7 @@ export class BookingsComponent {
           trip_id: this.selectedTripId ?? this.selectedBooking.trip_id,
           booking_date: this.booking_date.input_time ?? this.selectedBooking.booking_date,
           price: this.input_price.getText() ?? this.selectedBooking.price,
-          seat_number: this.input_seat_number.getText() ?? this.selectedBooking.seat_number,
+          seat_number: this.selectedSeatNumber ?? this.selectedBooking.seat_number,
           payment_status: this.currentPaymentStatusValue ?? this.selectedBooking.payment_status,
           status: this.currentBookingStatusValue ?? this.selectedBooking.status,
           created_at: this.selectedBooking.created_at,
@@ -587,7 +588,7 @@ export class BookingsComponent {
           trip_id: this.selectedTripId,
           booking_date: this.booking_date.input_time,
           price: this.input_price.getText(),
-          seat_number: this.input_seat_number.getText(),
+          seat_number: this.selectedSeatNumber,
           payment_status: this.currentPaymentStatusValue,
           status: this.currentBookingStatusValue,
           created_at: "",
@@ -599,7 +600,7 @@ export class BookingsComponent {
         if (this.selectedTrip && this.selectedTripId) {
           const seat_number = parseInt(obj.seat_number!!)
           const available_seats = parseInt(this.selectedTrip.available_seats!!)
-          if (seat_number < available_seats) {
+          if (seat_number <= available_seats) {
             const obj_trip: TRIP_TYPE = {
               ...this.selectedTrip,
               available_seats: (available_seats - 1).toString(),
@@ -687,82 +688,121 @@ export class BookingsComponent {
     row.addSuffix(icon_suffix)
     row.connect("activated", async () => {
 
-      this.isEdit = true
-      this.selectedBooking = item
+      if (item) {
+
+        this.isEdit = true
+        this.selectedBooking = item
+
+        this.selectedBooking.customer = await this.customerService.getById(item.customer_id)
+
+        console.log("selected booking:", item, this.selectedBooking)
+
+        side_title.setText(`Edit booking ${item.booking_number}`)
+        this.clearInputs()
+
+        if (this.selectedBooking && this.isEdit) {
+          // customer
+          if (this.selectedBooking.customer) {
+            this.input_cust_name.setText(this.selectedBooking.customer.name ?? "");
+            this.input_phone.setText(this.selectedBooking.customer.phone ?? "");
+            this.input_email.setText(this.selectedBooking.customer.email ?? "");
+            this.input_address.setText(this.selectedBooking.customer.address ?? "");
+
+          }
 
 
-      this.selectedBooking.customer = await this.customerService.getById(item.customer_id)
+          // booking
 
-      console.log("selected booking:", item, this.selectedBooking)
+          this.input_seat_number.setText(this.selectedBooking.seat_number ?? "");
+          this.input_price.setText(this.selectedBooking.price ?? "");
+
+          this.booking_date.setDefaultValue(this.selectedBooking.booking_date!!)
+
+          const l1 = this.trips_list.findIndex(fl => fl.id == item.trip_id)
+          this.comboRow_trips.setSelected(l1);
+
+          this.selectedTripId = item.trip_id
+
+          this.selectedTrip = this.trips_list.filter(fl => fl.id == item.trip_id)[0]
+
+          const k1 = this.booking_status_list.findIndex(fl => fl == item.status)
+          this.comboRow_booking_status.setSelected(k1)
+
+          const p1 = this.payment_status_list.findIndex(fl => fl == item.payment_status)
+          this.comboRow_payment_status.setSelected(p1)
+
+
+          if (this.selectedTrip) {
+            this.selectedSeatNumber = this.selectedBooking.seat_number!!
+            const available_seats = parseInt(this.selectedTrip?.available_seats!!)
+
+            console.log("edit:", item)
+
+            const seat_number: number = parseInt(item.seat_number!!)
+
+            // fill from booking-service
+            this.comboRow_seat_number_options = Array.from({ length: available_seats ?? 30 }, (_, index) => index + 1)
+            const l = await this.bookingService.getSeatNumbers(this.selectedTrip?.id ?? this.selectedTripId)
+
+            console.log("l bookign seat_numbers:", l)
+
+            this.comboRow_seat_number_options = this.swap_list(this.comboRow_seat_number_options, l)
+            // if selectedSeatNumber not in comboRow_seat_number_options then push it and .findIndex() and .setSelected() 
+            // else .findIndex() and .setSelected() 
+            // or outside if-else: .findIndex() and .setSelected() 
+
+            if (!this.comboRow_seat_number_options.includes(seat_number)) {
+              this.comboRow_seat_number_options.push(seat_number)
+            }
+
+            // dispaly selected
+            const c1 = this.comboRow_seat_number_options.findIndex(fl => fl == seat_number)
+            const display_str = this.comboRow_seat_number_options.map((m) => m.toString())
+            const stringList = Gtk.StringList.new(display_str);
+            this.comboRow_seat_number.setModel(stringList)
+            this.comboRow_seat_number.setSelected(c1)
+
+            /*
+             // get seats_numbers from booking-service
+            const l = await this.bookingService.getSeatNumbers(this.selectedTrip?.id ?? this.selectedTripId)
+  
+            console.log("l bookign seat_numbers:", l)
+  
+            this.comboRow_seat_number_options = this.swap_list(this.comboRow_seat_number_options, l)
+  
+            const display_str = this.comboRow_seat_number_options.map((m) => m.toString())
+            const stringList = Gtk.StringList.new(display_str);
+            this.comboRow_seat_number.setModel(stringList)
+  
+            
+            */
+
+
+            /*const available_seats = parseInt(this.selectedTrip?.available_seats!!)
+  
+            this.comboRow_seat_number_options.filter((fl) => fl <= available_seats)
+            const display_str = this.comboRow_seat_number_options.map((m) => m.toString())
+  
+            const stringList = Gtk.StringList.new(display_str);
+            this.comboRow_seat_number.setModel(stringList)*/
+
+          }
 
 
 
-      side_title.setText(`Edit booking ${item.booking_number}`)
-      this.clearInputs()
 
-      if (this.selectedBooking && this.isEdit) {
-        // customer
-        if (this.selectedBooking.customer) {
-          this.input_cust_name.setText(this.selectedBooking.customer.name ?? "");
-          this.input_phone.setText(this.selectedBooking.customer.phone ?? "");
-          this.input_email.setText(this.selectedBooking.customer.email ?? "");
-          this.input_address.setText(this.selectedBooking.customer.address ?? "");
+
+
 
         }
-
-
-        // booking
-
-        this.input_seat_number.setText(this.selectedBooking.seat_number ?? "");
-        this.input_price.setText(this.selectedBooking.price ?? "");
-
-        this.booking_date.setDefaultValue(this.selectedBooking.booking_date!!)
-
-        const l1 = this.trips_list.findIndex(fl => fl.id == item.trip_id)
-        this.comboRow_trips.setSelected(l1);
-
-        this.selectedTripId = item.trip_id
-
-        this.selectedTrip = this.trips_list.filter(fl => fl.id == item.trip_id)[0]
-
-        const k1 = this.booking_status_list.findIndex(fl => fl == item.status)
-        this.comboRow_booking_status.setSelected(k1)
-
-        const p1 = this.payment_status_list.findIndex(fl => fl == item.payment_status)
-        this.comboRow_payment_status.setSelected(p1)
-
-
-        if (this.selectedTrip) {
-          this.selectedSeatNumber = this.selectedBooking.seat_number!!
-          const available_seats = parseInt(this.selectedTrip?.available_seats!!)
-
-          // fill
-          this.comboRow_seat_number_options = Array.from({ length: available_seats ?? 30 }, (_, index) => index + 1)
-          // dispaly selected
-          const c1 = this.comboRow_seat_number_options.findIndex(fl => fl == this.selectedSeatNumber)
-          this.comboRow_seat_number.setSelected(c1)
-
-
-          /*const available_seats = parseInt(this.selectedTrip?.available_seats!!)
-
-          this.comboRow_seat_number_options.filter((fl) => fl <= available_seats)
-          const display_str = this.comboRow_seat_number_options.map((m) => m.toString())
-
-          const stringList = Gtk.StringList.new(display_str);
-          this.comboRow_seat_number.setModel(stringList)*/
-
-        }
-
-
-
-
-
+        sideBox.setVisible(true)
 
 
       }
-      sideBox.setVisible(true)
     })
     listBox.append(row)
+
+
 
   }
 
